@@ -72,7 +72,7 @@ Pane {
                 Layout.alignment: Qt.AlignRight
             }
             Label {
-                text: '<a href="https://electrum.org">https://electrum.org</a>'
+                text: '<a href="https://github.com/DebitMyData-PoW/electrum">https://github.com/DebitMyData-PoW/electrum</a>'
                 textFormat: Text.RichText
                 onLinkActivated: Qt.openUrlExternally(link)
             }
@@ -89,7 +89,7 @@ Pane {
                 Layout.columnSpan: 2
             }
             Label {
-                text: qsTr('Distributed by Electrum Technologies GmbH')
+                text: qsTr('DebitMyData-Electrum, based on Electrum by Electrum Technologies GmbH')
                 Layout.columnSpan: 2
                 Layout.alignment: Qt.AlignHCenter
             }

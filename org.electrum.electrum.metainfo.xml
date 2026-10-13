@@ -11,20 +11,20 @@
 <component type="desktop-application">
   <id>org.electrum.electrum</id>
 
-  <name>Electrum</name>
-  <summary>Bitcoin Wallet</summary>
+  <name>DebitMyData Electrum</name>
+  <summary>DebitMyData Wallet</summary>
 
   <metadata_license>MIT</metadata_license>
   <project_license>MIT</project_license>
 
   <description>
     <p>
-      Electrum is a lightweight Bitcoin wallet focused on speed, with low resource usage and simplifying Bitcoin.
-      Startup times are instant because it operates in conjunction with high-performance servers that handle the most complicated parts of the Bitcoin system.
+      DebitMyData Electrum is a lightweight DebitMyData (DMD) wallet based on Electrum, focused on speed and low resource usage.
+      Startup times are instant because it operates in conjunction with high-performance servers that handle the most complicated parts of the DebitMyData system.
     </p>
   </description>
 
-  <url type="homepage">https://www.electrum.org/</url>
+  <url type="homepage">https://github.com/DebitMyData-PoW/electrum</url>
   <developer id="org.electrum">
       <name>The Electrum developers</name>
   </developer>
