@@ -57,9 +57,9 @@ def create_fallback_node_list(fallback_nodes_dict: dict[str, dict]) -> List[LNPe
 
 
 # DebitMyData: point users at the DebitMyData fork, not at upstream Electrum.
-GIT_REPO_URL = "https://github.com/DebitMyData-PoW/electrum"
-GIT_REPO_ISSUES_URL = "https://github.com/DebitMyData-PoW/electrum/issues"
-RELEASE_NOTES_URL = "https://raw.githubusercontent.com/DebitMyData-PoW/electrum/refs/heads/master/RELEASE-NOTES"
+GIT_REPO_URL = "https://github.com/DebitMyData-PoW/electrum_new"
+GIT_REPO_ISSUES_URL = "https://github.com/DebitMyData-PoW/electrum_new/issues"
+RELEASE_NOTES_URL = "https://raw.githubusercontent.com/DebitMyData-PoW/electrum_new/refs/heads/master/RELEASE-NOTES"
 BIP39_WALLET_FORMATS = read_json('bip39_wallet_formats.json')
 
 

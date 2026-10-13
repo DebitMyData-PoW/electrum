@@ -76,8 +76,8 @@ plain folder), on an x86_64 machine with about 20 GB of free disk space.
 2. Get the DebitMyData source as a git clone:
 
     ```
-    git clone https://github.com/DebitMyData-PoW/electrum.git
-    cd electrum
+    git clone https://github.com/DebitMyData-PoW/electrum_new.git
+    cd electrum_new
     git checkout <your DebitMyData branch>
     git tag 4.8.2-dmd1          # optional: the newest tag becomes the version in the file names
     ```

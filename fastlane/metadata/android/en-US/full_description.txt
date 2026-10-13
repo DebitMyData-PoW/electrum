@@ -10,5 +10,5 @@ Features:
 • Cold Storage: Keep your private keys offline and go online with a watching-only wallet.
 
 Links:
-• Source code: https://github.com/DebitMyData-PoW/electrum
+• Source code: https://github.com/DebitMyData-PoW/electrum_new
 • Support: Please use GitHub to report bugs rather than the app rating system.
