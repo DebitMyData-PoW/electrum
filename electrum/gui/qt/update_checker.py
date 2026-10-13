@@ -19,6 +19,13 @@ from electrum.network import Network
 from electrum._vendor.distutils.version import StrictVersion
 
 
+# DebitMyData: upstream's update feed (electrum.org/version, signed by the Electrum developers)
+# announces Bitcoin Electrum releases, so update checks are disabled in this fork.
+# To enable them, publish a signed version feed, set the URLs and signing keys below,
+# and set UPDATE_CHECK_SUPPORTED = True.
+UPDATE_CHECK_SUPPORTED = False
+
+
 class UpdateCheck(QDialog, Logger):
     url = "https://electrum.org/version"
     download_url = "https://electrum.org/#download"

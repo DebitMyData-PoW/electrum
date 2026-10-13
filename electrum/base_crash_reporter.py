@@ -52,7 +52,9 @@ class CrashReportResponse(NamedTuple):
 
 
 class BaseCrashReporter(Logger):
-    report_server = "https://crashhub.electrum.org"
+    # DebitMyData: no crash report server (upstream does not accept reports from forks).
+    # Users are pointed to constants.GIT_REPO_ISSUES_URL instead.
+    report_server = ""
     issue_template = """<h2>Traceback</h2>
 <pre>
 {traceback}
@@ -89,6 +91,8 @@ class BaseCrashReporter(Logger):
 
     def send_report(self, asyncio_loop, proxy: 'ProxySettings', *, timeout=None) -> CrashReportResponse:
         # FIXME the caller needs to catch generic "Exception", as this method does not have a well-defined API...
+        if not BaseCrashReporter.report_server:
+            raise Exception(_("Automatic crash reporting is not available in DebitMyData-Electrum."))
         bitcoinlike_genesis = constants.net.GENESIS[-4:] in [
             "e26f",  # mainnet
             "4943",  # testnet 3

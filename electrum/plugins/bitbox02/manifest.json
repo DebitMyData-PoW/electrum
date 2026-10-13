@@ -5,5 +5,6 @@
   "requires": [["bitbox02", "https://github.com/digitalbitbox/bitbox02-firmware/tree/master/py/bitbox02"]],
   "registers_keystore": ["hardware", "bitbox02", "BitBox02"],
   "icon":"bitbox02.png",
-  "available_for": ["qt"]
+  "available_for": [],
+  "debitmydata_disabled": "Disabled in DebitMyData-Electrum: Bitcoin-only service, needs Lightning, or no DebitMyData support on the device."
 }

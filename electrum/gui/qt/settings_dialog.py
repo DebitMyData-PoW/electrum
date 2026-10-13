@@ -32,6 +32,8 @@ from PyQt6.QtWidgets import (QComboBox,  QTabWidget, QDialog, QSpinBox,  QCheckB
                              QVBoxLayout, QGridLayout, QLineEdit, QWidget, QHBoxLayout)
 
 from electrum.i18n import _, get_gui_lang_names
+from .update_checker import UPDATE_CHECK_SUPPORTED
+from electrum.exchange_rate import FX_SUPPORTED
 from electrum import util
 from electrum.util import base_units_list, event_listener
 
@@ -366,7 +368,8 @@ class SettingsDialog(QDialog, QtEventListener):
         fiat_widgets.append((QLabel(_('Source')), ex_combo))
         fiat_widgets.append((self.history_rates_cb, None))
         misc_widgets = []
-        misc_widgets.append((updatecheck_cb, None))
+        if UPDATE_CHECK_SUPPORTED:
+            misc_widgets.append((updatecheck_cb, None))
         misc_widgets.append((filelogging_cb, None))
         misc_widgets.append((screenshot_protection_cb, None))
         misc_widgets.append((alias_label, self.alias_e))
@@ -375,7 +378,7 @@ class SettingsDialog(QDialog, QtEventListener):
         tabs_info = [
             (gui_widgets, _('Appearance')),
             (units_widgets, _('Units')),
-            (fiat_widgets, _('Fiat')),
+            *([(fiat_widgets, _('Fiat'))] if FX_SUPPORTED else []),
             (lightning_widgets, _('Lightning')),
             (misc_widgets, _('Misc')),
         ]

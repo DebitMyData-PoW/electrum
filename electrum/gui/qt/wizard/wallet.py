@@ -49,6 +49,12 @@ MSG_HW_STORAGE_ENCRYPTION = _("Set wallet file encryption.") + '\n'\
                           + _("It also contains your master public key that allows watching your addresses.")
 
 
+
+# DebitMyData: no hardware wallet has a DebitMyData app (their Bitcoin apps would show
+# Bitcoin-format addresses that cannot be checked against DMD addresses), so the hardware
+# wallet plugins are disabled and the option is hidden from the wizard.
+HARDWARE_WALLETS_SUPPORTED = False
+
 class QEKeystoreWizard(KeystoreWizard, QEAbstractWizard, MessageBoxMixin):
     _logger = get_logger(__name__)
 
@@ -416,8 +422,9 @@ class WCKeystoreType(WalletWizardComponent):
             ChoiceItem(key='createseed', label=_('Create a new seed')),
             ChoiceItem(key='haveseed', label=_('I already have a seed')),
             ChoiceItem(key='masterkey', label=_('Use a master key')),
-            ChoiceItem(key='hardware', label=_('Use a hardware device')),
         ]
+        if HARDWARE_WALLETS_SUPPORTED:
+            choices.append(ChoiceItem(key='hardware', label=_('Use a hardware device')))
         self.choice_w = ChoiceWidget(message=message, choices=choices)
         self.layout().addWidget(self.choice_w)
         self.layout().addStretch(1)
@@ -433,8 +440,9 @@ class WCExtendKeystore(WalletWizardComponent):
         message = _('What type of signing method do you want to add?')
         choices = [
             ChoiceItem(key='haveseed', label=_('Enter seed')),
-            ChoiceItem(key='hardware', label=_('Use a hardware device')),
         ]
+        if HARDWARE_WALLETS_SUPPORTED:
+            choices.append(ChoiceItem(key='hardware', label=_('Use a hardware device')))
         self.choice_w = ChoiceWidget(message=message, choices=choices)
         self.layout().addWidget(self.choice_w)
         self.layout().addStretch(1)
@@ -785,8 +793,9 @@ class WCCosignerKeystore(WalletWizardComponent):
         choices = [
             ChoiceItem(key='masterkey', label=_('Enter cosigner key')),
             ChoiceItem(key='haveseed', label=_('Enter cosigner seed')),
-            ChoiceItem(key='hardware', label=_('Cosign with hardware device')),
         ]
+        if HARDWARE_WALLETS_SUPPORTED:
+            choices.append(ChoiceItem(key='hardware', label=_('Cosign with hardware device')))
 
         self.choice_w = ChoiceWidget(message=message, choices=choices)
         self.layout().addWidget(self.choice_w)

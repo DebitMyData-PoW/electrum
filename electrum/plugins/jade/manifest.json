@@ -4,5 +4,6 @@
   "description": "Provides support for the Blockstream Jade hardware wallet",
   "registers_keystore": ["hardware", "jade", "Jade wallet"],
   "icon":"jade.png",
-  "available_for": ["qt", "cmdline"]
+  "available_for": [],
+  "debitmydata_disabled": "Disabled in DebitMyData-Electrum: Bitcoin-only service, needs Lightning, or no DebitMyData support on the device."
 }

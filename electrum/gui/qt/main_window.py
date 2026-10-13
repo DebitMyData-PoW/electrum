@@ -96,7 +96,7 @@ from .util import (read_QIcon, ColorScheme, text_dialog, icon_path, WaitingDialo
                    ButtonsTextEdit)
 from .wizard.wallet import WIF_HELP_TEXT
 from .history_list import HistoryList, HistoryModel
-from .update_checker import UpdateCheck, UpdateCheckThread
+from .update_checker import UpdateCheck, UpdateCheckThread, UPDATE_CHECK_SUPPORTED
 from .channels_list import ChannelsList
 from .confirm_tx_dialog import ConfirmTxDialog, TxEditorContext
 from .rbf_dialog import BumpFeeDialog, DSCancelDialog
@@ -298,14 +298,14 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger, QtEventListener):
         self.contacts.fetch_openalias(self.config)
 
         # If the option hasn't been set yet
-        if not config.cv.AUTOMATIC_CENTRALIZED_UPDATE_CHECKS.is_set():
+        if UPDATE_CHECK_SUPPORTED and not config.cv.AUTOMATIC_CENTRALIZED_UPDATE_CHECKS.is_set():
             choice = self.question(title="Electrum - " + _("Enable update check"),
                                    msg=_("For security reasons we advise that you always use the latest version of Electrum.") + " " +
                                        _("Would you like to be notified when there is a newer version of Electrum available?"))
             config.AUTOMATIC_CENTRALIZED_UPDATE_CHECKS = bool(choice)
 
         self._update_check_thread = None
-        if config.AUTOMATIC_CENTRALIZED_UPDATE_CHECKS:
+        if UPDATE_CHECK_SUPPORTED and config.AUTOMATIC_CENTRALIZED_UPDATE_CHECKS:
             # The references to both the thread and the window need to be stored somewhere
             # to prevent GC from getting in our way.
             def on_version_received(v):
@@ -629,7 +629,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger, QtEventListener):
 
     @classmethod
     def get_app_name_and_version_str(cls) -> str:
-        name = "Electrum"
+        name = "DebitMyData-Electrum"
         if constants.net.TESTNET:
             name += " " + constants.net.NET_NAME.capitalize()
         return f"{name} {ELECTRUM_VERSION}"
@@ -853,12 +853,13 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger, QtEventListener):
             about_action.setMenuRole(QAction.MenuRole.AboutRole)  # make sure OS recognizes it as "About"
             self.help_menu.addAction(about_action)
         self.help_menu.addAction(_("&Changelog"), lambda: webopen(constants.RELEASE_NOTES_URL))
-        self.help_menu.addAction(_("&Check for updates"), self.show_update_check)
-        self.help_menu.addAction(_("&Official website"), lambda: webopen("https://electrum.org"))
+        if UPDATE_CHECK_SUPPORTED:
+            self.help_menu.addAction(_("&Check for updates"), self.show_update_check)
+        self.help_menu.addAction(_("&Official website"), lambda: webopen(constants.GIT_REPO_URL))
         self.help_menu.addSeparator()
         self.help_menu.addAction(_("&Documentation"), lambda: webopen("http://docs.electrum.org/")).setShortcut(QKeySequence.StandardKey.HelpContents)
-        if not constants.net.TESTNET:
-            self.help_menu.addAction(_("&Bitcoin Paper"), self.show_bitcoin_paper)
+        # DebitMyData: "Bitcoin Paper" reads the whitepaper from a Bitcoin transaction, which
+        # does not exist on the DebitMyData chain, so that menu entry is omitted.
         self.help_menu.addAction(_("&Report Bug"), self.show_report_bug)
         self.help_menu.addSeparator()
         if self.network:
@@ -872,13 +873,14 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger, QtEventListener):
         if d:
             self.show_send_tab()
             host = self.network.get_parameters().server.host
-            self.handle_payment_identifier('bitcoin:%s?message=donation for %s' % (d, host))
+            self.handle_payment_identifier('%s:%s?message=donation for %s' % (BITCOIN_BIP21_URI_SCHEME, d, host))
         else:
             self.show_error(_('No donation address for this server'))
 
     def show_about(self):
-        QMessageBox.about(self, "Electrum",
+        QMessageBox.about(self, "DebitMyData-Electrum",
                           (_("Version")+" %s" % ELECTRUM_VERSION + "\n\n" +
+                           "DebitMyData-Electrum is a DebitMyData (DMD) wallet based on Electrum." + "\n\n" +
                            _("Electrum's focus is speed, with low resource usage and simplifying Bitcoin.") + " " +
                            _("You do not need to perform regular backups, because your wallet can be "
                               "recovered from a secret phrase that you can memorize or write on paper.") + " " +

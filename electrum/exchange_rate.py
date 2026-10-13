@@ -548,6 +548,11 @@ def dictinvert(d):
             keys.append(k)
     return inv
 
+# DebitMyData: the exchanges below quote Bitcoin, and "DMD" tickers on aggregators belong to
+# another coin (Diamond). Fiat display stays disabled until a DebitMyData price source is added.
+FX_SUPPORTED = False
+
+
 def get_exchanges_and_currencies():
     # load currencies.json from disk
     path = resource_path('currencies.json')
@@ -693,9 +698,11 @@ class FxThread(ThreadJob, EventListener, NetworkRetryManager[str]):
                 await self.exchange.update_safe(self.ccy)
 
     def is_enabled(self) -> bool:
-        return self.config.FX_USE_EXCHANGE_RATE
+        return FX_SUPPORTED and self.config.FX_USE_EXCHANGE_RATE
 
     def set_enabled(self, b: bool) -> None:
+        if not FX_SUPPORTED:
+            b = False
         self.config.FX_USE_EXCHANGE_RATE = b
         self.trigger_update()
 
