@@ -969,7 +969,7 @@ def delta_time_str(distance_in_time: timedelta, *, include_seconds: bool = False
 
 
 mainnet_block_explorers = {
-    'chain.debitmydata.io': ('https://chain.debitmydata.io/',
+    'mempool.debitmydata.io': ('https://mempool.debitmydata.io/',
                         {'tx': 'tx/', 'addr': 'address/'}),
 }
 

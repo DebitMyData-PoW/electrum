@@ -19,7 +19,7 @@ Chain parameters follow DebitMyData Core v1.3.3 (`src/kernel/chainparams.cpp`, `
 | Units | DMD, mDMD, debits (µDMD), data (smallest unit); fee rates in data/vB |
 | Data folder | `%APPDATA%\DebitMyData-Electrum`, `~/.debitmydata-electrum` |
 | Servers | `electrum01`–`electrum06.debitmydata.network` (`electrum/chains/mainnet/servers.json`) |
-| Explorer | https://chain.debitmydata.io/ |
+| Explorer | https://mempool.debitmydata.io/ |
 
 Disabled because they only work for Bitcoin, or need Lightning, which DebitMyData does not have:
 Lightning (`LIGHTNING_SUPPORTED = False`, which also disables submarine swaps, NWC and the watchtower),
