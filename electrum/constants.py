@@ -56,9 +56,10 @@ def create_fallback_node_list(fallback_nodes_dict: dict[str, dict]) -> List[LNPe
     return fallback_nodes
 
 
-GIT_REPO_URL = "https://github.com/spesmilo/electrum"
-GIT_REPO_ISSUES_URL = "https://github.com/spesmilo/electrum/issues"
-RELEASE_NOTES_URL = "https://raw.githubusercontent.com/spesmilo/electrum/refs/heads/master/RELEASE-NOTES"
+# DebitMyData: point users at the DebitMyData fork, not at upstream Electrum.
+GIT_REPO_URL = "https://github.com/DebitMyData-PoW/electrum"
+GIT_REPO_ISSUES_URL = "https://github.com/DebitMyData-PoW/electrum/issues"
+RELEASE_NOTES_URL = "https://raw.githubusercontent.com/DebitMyData-PoW/electrum/refs/heads/master/RELEASE-NOTES"
 BIP39_WALLET_FORMATS = read_json('bip39_wallet_formats.json')
 
 
@@ -73,6 +74,10 @@ class AbstractNet:
     BOLT11_HRP: str
     GENESIS: str
     BLOCK_HEIGHT_FIRST_LIGHTNING_CHANNELS: int = 0
+    # DebitMyData: there is no DebitMyData Lightning network (no peers, gossip, trampoline
+    # or swap providers). When False, wallets never start Lightning, which also disables
+    # submarine swaps, Nostr Wallet Connect and the watchtower.
+    LIGHTNING_SUPPORTED: bool = True
     BIP44_COIN_TYPE: int
     LN_REALM_BYTE: int
     DEFAULT_PORTS: Mapping[str, str]
@@ -81,6 +86,17 @@ class AbstractNet:
     XPRV_HEADERS_INV: Mapping[int, str]
     XPUB_HEADERS: Mapping[str, int]
     XPUB_HEADERS_INV: Mapping[int, str]
+
+    # DebitMyData proof-of-work parameters, mirroring DebitMyData Core
+    # (src/kernel/chainparams.cpp and src/pow.cpp). Only used for non-testnet nets.
+    POW_LIMIT: int = 0
+    POW_TARGET_SPACING: int = 0     # seconds (nPowTargetSpacing)
+    POW_TARGET_TIMESPAN: int = 0    # seconds (nPowTargetTimespan), legacy retarget before LWMA
+    LWMA_HEIGHT: int = 0            # first height whose difficulty is computed by LWMA
+    LWMA_WINDOW: int = 60           # N in LwmaCalculateNextWorkRequired
+    # height -> block hash that every valid chain must contain
+    # (consensus.mandatory_block_height / mandatory_block_hash in DebitMyData Core)
+    CHAIN_ANCHORS: Mapping[int, str] = {}
 
     @classmethod
     def max_checkpoint(cls) -> int:
@@ -125,6 +141,16 @@ class AbstractNet:
             cls._cached_checkpoints = read_json(os.path.join('chains', cls.NET_NAME, 'checkpoints.json'), default_file)
         return cls._cached_checkpoints
 
+    _cached_checkpoint_tail = None
+    @classproperty
+    def CHECKPOINT_TAIL(cls) -> Sequence[str]:
+        """Raw headers (hex) ending at max_checkpoint(). DebitMyData's LWMA difficulty needs
+        the headers just below the last checkpoint to verify the headers just above it.
+        Generated together with checkpoints.json by contrib/dmd_make_checkpoints.py."""
+        if cls._cached_checkpoint_tail is None:
+            cls._cached_checkpoint_tail = read_json(os.path.join('chains', cls.NET_NAME, 'checkpoints_tail.json'), [])
+        return cls._cached_checkpoint_tail
+
     @classmethod
     def datadir_subdir(cls) -> Optional[str]:
         """The name of the folder in the filesystem.
@@ -144,20 +170,32 @@ class AbstractNet:
 
 
 class BitcoinMainnet(AbstractNet):
+    # DebitMyData mainnet. The class keeps its upstream name because the rest of the
+    # codebase refers to constants.BitcoinMainnet.
 
     NET_NAME = "mainnet"
     TESTNET = False
-    WIF_PREFIX = 0x80
-    ADDRTYPE_P2PKH = 0
-    ADDRTYPE_P2SH = 5
-    SEGWIT_HRP = "bc"
+    WIF_PREFIX = 0x9e      # base58Prefixes[SECRET_KEY] = 158
+    ADDRTYPE_P2PKH = 30    # base58Prefixes[PUBKEY_ADDRESS]
+    ADDRTYPE_P2SH = 31     # base58Prefixes[SCRIPT_ADDRESS]
+    SEGWIT_HRP = "dm"      # bech32_hrp
     BOLT11_HRP = SEGWIT_HRP
-    GENESIS = "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
+    GENESIS = "00000992d19e3ed58ddf4117b597955752ff029e7256487a47557a24aeb4cadd"
     DEFAULT_PORTS = {'t': '50001', 's': '50002'}
-    BLOCK_HEIGHT_FIRST_LIGHTNING_CHANNELS = 497000
+    BLOCK_HEIGHT_FIRST_LIGHTNING_CHANNELS = 0
+    LIGHTNING_SUPPORTED = False
+
+    POW_LIMIT = 0x00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+    POW_TARGET_SPACING = 150        # 2.5 minutes
+    POW_TARGET_TIMESPAN = 20 * 60   # legacy retarget every 8 blocks (heights < LWMA_HEIGHT)
+    LWMA_HEIGHT = 120
+    LWMA_WINDOW = 60
+    CHAIN_ANCHORS = {
+        70159: "00000000000004b1c66c5c86b9af015e2c8c972a3e6c22b6fb3b0c799388db2a",
+    }
 
     XPRV_HEADERS = {
-        'standard':    0x0488ade4,  # xprv
+        'standard':    0x04daade4,  # "22mc..."  (DebitMyData Core base58Prefixes[EXT_SECRET_KEY])
         'p2wpkh-p2sh': 0x049d7878,  # yprv
         'p2wsh-p2sh':  0x0295b005,  # Yprv
         'p2wpkh':      0x04b2430c,  # zprv
@@ -165,20 +203,16 @@ class BitcoinMainnet(AbstractNet):
     }
     XPRV_HEADERS_INV = inv_dict(XPRV_HEADERS)
     XPUB_HEADERS = {
-        'standard':    0x0488b21e,  # xpub
+        'standard':    0x04dab21e,  # "22mf..."  (DebitMyData Core base58Prefixes[EXT_PUBLIC_KEY])
         'p2wpkh-p2sh': 0x049d7cb2,  # ypub
         'p2wsh-p2sh':  0x0295b43f,  # Ypub
         'p2wpkh':      0x04b24746,  # zpub
         'p2wsh':       0x02aa7ed3,  # Zpub
     }
     XPUB_HEADERS_INV = inv_dict(XPUB_HEADERS)
-    BIP44_COIN_TYPE = 0
+    BIP44_COIN_TYPE = 4134  # SLIP-0044: DebitMyData
     LN_REALM_BYTE = 0
-    LN_DNS_SEEDS = [
-        'nodes.lightning.directory.',
-        'lseed.bitcoinstats.com.',
-        'lseed.darosior.ninja',
-    ]
+    LN_DNS_SEEDS = []  # no DebitMyData lightning seeds exist
 
     @classmethod
     def datadir_subdir(cls):
