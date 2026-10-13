@@ -78,6 +78,8 @@ class AbstractNet:
     # or swap providers). When False, wallets never start Lightning, which also disables
     # submarine swaps, Nostr Wallet Connect and the watchtower.
     LIGHTNING_SUPPORTED: bool = True
+    # prefix for signmessage/verifymessage (MESSAGE_MAGIC in Core)
+    SIGNED_MESSAGE_MAGIC: str = "Bitcoin Signed Message:\n"
     BIP44_COIN_TYPE: int
     LN_REALM_BYTE: int
     DEFAULT_PORTS: Mapping[str, str]
@@ -184,6 +186,7 @@ class BitcoinMainnet(AbstractNet):
     DEFAULT_PORTS = {'t': '50001', 's': '50002'}
     BLOCK_HEIGHT_FIRST_LIGHTNING_CHANNELS = 0
     LIGHTNING_SUPPORTED = False
+    SIGNED_MESSAGE_MAGIC = "DebitMyData Signed Message:\n"  # src/common/signmessage.cpp
 
     POW_LIMIT = 0x00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
     POW_TARGET_SPACING = 150        # 2.5 minutes

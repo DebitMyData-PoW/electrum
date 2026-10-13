@@ -441,7 +441,7 @@ def script_to_address(script: bytes, *, net=None) -> Optional[str]:
 def address_to_script(addr: str, *, net=None) -> bytes:
     if net is None: net = constants.net
     if not is_address(addr, net=net):
-        raise BitcoinException(f"invalid bitcoin address: {neuter_bitcoin_address(addr)}")
+        raise BitcoinException(f"invalid DebitMyData address: {neuter_bitcoin_address(addr)}")
     witver, witprog = segwit_addr.decode_segwit_address(net.SEGWIT_HRP, addr)
     if witprog is not None:
         if not (0 <= witver <= 16):
@@ -483,7 +483,7 @@ def address_to_payload(addr: str, *, net=None) -> Tuple[OnchainOutputType, bytes
     """Return (type, pubkey hash / witness program) for an address."""
     if net is None: net = constants.net
     if not is_address(addr, net=net):
-        raise BitcoinException(f"invalid bitcoin address: {neuter_bitcoin_address(addr)}")
+        raise BitcoinException(f"invalid DebitMyData address: {neuter_bitcoin_address(addr)}")
     witver, witprog = segwit_addr.decode_segwit_address(net.SEGWIT_HRP, addr)
     if witprog is not None:
         if witver == 0:
@@ -880,8 +880,10 @@ def control_block_for_taproot_script_spend(
 
 # user message signing
 def usermessage_magic(message: bytes) -> bytes:
-    length = var_int(len(message))
-    return b"\x18Bitcoin Signed Message:\n" + length + message
+    # DebitMyData: Core uses MESSAGE_MAGIC = "DebitMyData Signed Message:\n" (src/common/signmessage.cpp),
+    # serialized like any string: compact-size length, then the bytes.
+    magic = constants.net.SIGNED_MESSAGE_MAGIC.encode('ascii')
+    return var_int(len(magic)) + magic + var_int(len(message)) + message
 
 
 def ecdsa_sign_usermessage(ec_privkey, message: Union[bytes, str], *, is_compressed: bool) -> bytes:
