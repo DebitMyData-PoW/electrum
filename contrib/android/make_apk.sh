@@ -61,7 +61,7 @@ if [[ "$3" == "release" ]] ; then
     export P4A_RELEASE_KEYSTORE_PASSWD="$4"
     export P4A_RELEASE_KEYALIAS_PASSWD="$4"
     export P4A_RELEASE_KEYSTORE=~/.keystore
-    export P4A_RELEASE_KEYALIAS=electrum
+    export P4A_RELEASE_KEYALIAS=debitmydata  # DebitMyData: alias of the key in ~/.keystore
     if [ -z "$P4A_RELEASE_KEYSTORE_PASSWD" ] || [ -z "$P4A_RELEASE_KEYALIAS_PASSWD" ]; then
         echo "p4a password not defined"
         exit 1
@@ -116,6 +116,13 @@ fi
 
 popd
 
+
+# DebitMyData: buildozer names outputs after package.name ("Electrum-<version>-<arch>-<mode>.apk").
+# Rename them so they cannot be confused with Bitcoin Electrum.
+for f in "$PROJECT_ROOT"/dist/Electrum-*.apk "$PROJECT_ROOT"/dist/Electrum-*.aab; do
+    [ -e "$f" ] || continue
+    mv -f "$f" "$PROJECT_ROOT/dist/debitmydata-electrum-$(basename "$f" | sed 's/^Electrum-//')"
+done
 
 info "done."
 ls -la "$PROJECT_ROOT/dist"

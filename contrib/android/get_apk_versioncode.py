@@ -23,6 +23,15 @@ def get_electrum_version() -> str:
     return version.ELECTRUM_VERSION
 
 
+def get_dmd_release() -> int:
+    project_root = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+    version_file_path = os.path.join(project_root, "electrum", "version.py")
+    version_spec = importlib.util.spec_from_file_location('version', version_file_path)
+    version_module = importlib.util.module_from_spec(version_spec)
+    version_spec.loader.exec_module(version_module)
+    return int(version_module.DMD_RELEASE)
+
+
 def get_android_versioncode(*, arch_name: str) -> int:
     version_code = 0
     # add ELECTRUM_VERSION
@@ -43,6 +52,12 @@ def get_android_versioncode(*, arch_name: str) -> int:
     for i in app_version_components:
         version_code *= 100
         version_code += int(i)
+    # DebitMyData: add DMD_RELEASE, so that each DebitMyData release built on the same
+    # Electrum version gets a higher version code (Android and Google Play require that).
+    dmd_release = get_dmd_release()
+    assert 0 <= dmd_release <= 99, f"DMD_RELEASE must be 0..99, got {dmd_release}"
+    version_code *= 100
+    version_code += dmd_release
     # add arch
     arch_code = ARCH_DICT[arch_name]
     assert len(arch_code) == 1

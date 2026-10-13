@@ -81,6 +81,12 @@ if [[ "$3" == "release" ]] ; then
     info "'release' mode selected. mounting ~/.keystore inside container."
     DOCKER_RUN_FLAGS="$DOCKER_RUN_FLAGS -v $HOME/.keystore:/home/user/.keystore"
 fi
+# DebitMyData: ELEC_ANDROID_AAB=1 builds an Android App Bundle (.aab, required by Google Play
+# for new apps) instead of an .apk. Only used by release builds.
+if [ -n "$ELEC_ANDROID_AAB" ] ; then
+    info "ELEC_ANDROID_AAB is set. building .aab (Android App Bundle) for release."
+    DOCKER_RUN_FLAGS="$DOCKER_RUN_FLAGS -e APP_ANDROID_RELEASE_ARTIFACT=aab"
+fi
 if sh -c ": >/dev/tty" >/dev/null 2>/dev/null; then
     info "/dev/tty is available and usable"
     DOCKER_RUN_FLAGS="$DOCKER_RUN_FLAGS -it"

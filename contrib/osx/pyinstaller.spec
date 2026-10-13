@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from PyInstaller.building.build_main import Analysis, PYZ, EXE, BUNDLE
 
 
-PACKAGE_NAME='Electrum.app'
+PACKAGE_NAME='DebitMyData-Electrum.app'
 PYPKG='electrum'
 MAIN_SCRIPT='run_electrum'
 PROJECT_ROOT = os.path.abspath(".")
@@ -129,16 +129,16 @@ app = BUNDLE(
     version=VERSION,
     name=PACKAGE_NAME,
     icon=ICONS_FILE,
-    bundle_identifier=None,
+    bundle_identifier='io.debitmydata.electrum',
     info_plist={
         'NSHighResolutionCapable': 'True',
         'NSSupportsAutomaticGraphicsSwitching': 'True',
         'CFBundleURLTypes':
             [{
-                'CFBundleURLName': 'bitcoin',
+                'CFBundleURLName': 'debitmydata',
                 'CFBundleURLSchemes': ['debitmydata', ],
             }],
         'LSMinimumSystemVersion': '11',
-        'NSCameraUsageDescription': 'Electrum would like to access the camera to scan for QR codes',
+        'NSCameraUsageDescription': 'DebitMyData Electrum would like to access the camera to scan for QR codes',
     },
 )
