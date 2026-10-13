@@ -23,8 +23,9 @@
 import os
 import threading
 import time
-from typing import Optional, Dict, Mapping, Sequence, TYPE_CHECKING
+from typing import Optional, Dict, Mapping, Sequence, Callable, TYPE_CHECKING
 from pathlib import Path
+from functools import lru_cache
 
 from . import util
 from .bitcoin import hash_encode
@@ -40,8 +41,8 @@ if TYPE_CHECKING:
 HEADER_SIZE = 80  # bytes
 CHUNK_SIZE = 2016  # num headers in a difficulty retarget period
 
-# see https://github.com/bitcoin/bitcoin/blob/feedb9c84e72e4fff489810a2bbeec09bcda5763/src/chainparams.cpp#L76
-MAX_TARGET = 0x00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff  # compact: 0x1d00ffff
+# DebitMyData consensus.powLimit (see src/kernel/chainparams.cpp). Kept in sync with constants.
+MAX_TARGET = 0x00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff  # compact: 0x1e0fffff
 
 
 class MissingHeader(Exception):
@@ -93,6 +94,103 @@ def hash_raw_header(header: bytes) -> str:
 
 
 pow_hash_header = hash_header
+
+
+# ---------------------------------------------------------------------------
+# DebitMyData difficulty rules.
+# Exact port of GetNextWorkRequired / LwmaCalculateNextWorkRequired /
+# CalculateNextWorkRequired from DebitMyData Core src/pow.cpp, including the
+# 256-bit wrap-around of arith_uint256. Parameters come from constants.net.
+# ---------------------------------------------------------------------------
+
+_UINT256_MASK = (1 << 256) - 1
+
+
+@lru_cache(maxsize=4096)
+def _set_compact(bits: int) -> int:
+    """arith_uint256::SetCompact, value only (sign/overflow flags ignored, like the
+    callers in pow.cpp)."""
+    size = bits >> 24
+    word = bits & 0x007fffff
+    if size <= 3:
+        return word >> (8 * (3 - size))
+    return (word << (8 * (size - 3))) & _UINT256_MASK
+
+
+def dmd_get_next_work_required(height: int, get_header: Callable[[int], dict]) -> int:
+    """Return the nBits the block at `height` must have.
+
+    Equivalent to GetNextWorkRequired(pindexLast = block at height-1) in DebitMyData Core.
+    `get_header(h)` must return the header dict at height h (h < height) of the
+    same chain, or raise MissingHeader.
+    """
+    net = constants.net
+    last = height - 1
+    if last < 0:
+        raise ValueError(f"no difficulty rule for height {height}")
+    if height >= net.LWMA_HEIGHT:
+        return _dmd_lwma_next_bits(last, get_header)
+    # legacy Bitcoin-style retarget, every POW_TARGET_TIMESPAN/POW_TARGET_SPACING blocks
+    interval = net.POW_TARGET_TIMESPAN // net.POW_TARGET_SPACING
+    last_header = get_header(last)
+    if height % interval != 0:
+        return last_header['bits']
+    first_header = get_header(last - (interval - 1))
+    timespan = net.POW_TARGET_TIMESPAN
+    actual = last_header['timestamp'] - first_header['timestamp']
+    actual = max(actual, timespan // 4)
+    actual = min(actual, timespan * 4)
+    new_target = (_set_compact(last_header['bits']) * (actual & 0xffffffff)) & _UINT256_MASK
+    new_target //= timespan
+    new_target = min(new_target, net.POW_LIMIT)
+    return Blockchain.target_to_bits(new_target)
+
+
+def _dmd_lwma_next_bits(last: int, get_header: Callable[[int], dict]) -> int:
+    """LwmaCalculateNextWorkRequired(pindexLast = block at `last`)."""
+    net = constants.net
+    T = net.POW_TARGET_SPACING
+    lwma_height = net.LWMA_HEIGHT
+    N = min(net.LWMA_WINDOW, last)
+    if N <= 0:
+        return Blockchain.target_to_bits(net.POW_LIMIT)
+    k = N * (N + 1) * T // 2
+    previous_timestamp = get_header(last - N)['timestamp']
+    # blocks below LWMA_HEIGHT count with the target of block LWMA_HEIGHT-1
+    use_transition = lwma_height > 0 and last >= lwma_height - 1
+    transition_target = None
+    sum_target = 0
+    t = 0
+    j = 0
+    for i in range(last - N + 1, last + 1):
+        header = get_header(i)
+        this_timestamp = max(header['timestamp'], previous_timestamp + 1)
+        solvetime = min(6 * T, this_timestamp - previous_timestamp)
+        previous_timestamp = this_timestamp
+        j += 1
+        t += solvetime * j
+        if i < lwma_height and use_transition:
+            if transition_target is None:
+                transition_target = _set_compact(get_header(lwma_height - 1)['bits'])
+            target = transition_target
+        else:
+            target = _set_compact(header['bits'])
+        sum_target = (sum_target + target) & _UINT256_MASK
+    next_target = sum_target // N
+    next_target = (next_target * (t & 0xffffffff)) & _UINT256_MASK  # arith_uint256 *= uint32_t
+    next_target //= k
+    if next_target > net.POW_LIMIT:
+        next_target = net.POW_LIMIT
+    return Blockchain.target_to_bits(next_target)
+
+
+def _work_from_target(target: int) -> int:
+    return ((2 ** 256 - target - 1) // (target + 1)) + 1
+
+
+@lru_cache(maxsize=4096)
+def _work_from_bits(bits: int) -> int:
+    return _work_from_target(_set_compact(bits))
 
 
 # block hash -> chain work; up to and including that block
@@ -201,6 +299,7 @@ class BlockchainManager(Logger):
             util.ensure_sparse_file(filename)
         with b.lock:
             b.update_size()
+            b.install_checkpoint_tail()
 
     def get_best_chain(self) -> 'Blockchain':
         return self.blockchains[constants.net.GENESIS]
@@ -365,7 +464,18 @@ class Blockchain(Logger):
         self._size = os.path.getsize(p)//HEADER_SIZE if p.exists() else 0
 
     @classmethod
-    def verify_header(cls, header: dict, prev_hash: str, target: int, expected_header_hash: str=None) -> None:
+    def verify_header(
+        cls,
+        header: dict,
+        prev_hash: str,
+        expected_bits: Optional[int],
+        expected_header_hash: str = None,
+    ) -> None:
+        """Checks a single header in context.
+        expected_bits: the nBits DebitMyData consensus requires at this height, or None
+                       if the height is pinned by genesis/checkpoints (then only the
+                       header's own proof of work is checked).
+        """
         _hash = hash_header(header)
         if expected_header_hash and expected_header_hash != _hash:
             raise InvalidHeader("hash mismatches with expected: {} vs {}".format(expected_header_hash, _hash))
@@ -373,19 +483,54 @@ class Blockchain(Logger):
             raise InvalidHeader("prev hash mismatch: %s vs %s" % (prev_hash, header.get('prev_block_hash')))
         if constants.net.TESTNET:
             return
-        bits = cls.target_to_bits(target)
-        if bits != header.get('bits'):
-            raise InvalidHeader("bits mismatch: %s vs %s" % (bits, header.get('bits')))
+        height = header.get('block_height')
+        anchor_hash = constants.net.CHAIN_ANCHORS.get(height)
+        if anchor_hash is not None and anchor_hash != _hash:
+            raise InvalidHeader(f"block at anchor height {height} has hash {_hash}, expected {anchor_hash}")
+        bits = header.get('bits')
+        if expected_bits is not None and bits != expected_bits:
+            raise InvalidHeader("bits mismatch: %s vs %s" % (hex(expected_bits), hex(bits)))
+        # CheckProofOfWorkImpl
+        target = cls.bits_to_target(bits)
+        if target == 0 or target > constants.net.POW_LIMIT:
+            raise InvalidHeader(f"target out of range: {hex(bits)}")
         _pow_hash = pow_hash_header(header)
         pow_hash_as_num = int.from_bytes(bfh(_pow_hash), byteorder='big')
         if pow_hash_as_num > target:
             raise InvalidHeader(f"insufficient proof of work: {pow_hash_as_num} vs target {target}")
 
+    def get_expected_bits(self, height: int, get_header: Callable[[int], dict] = None) -> Optional[int]:
+        """nBits required at `height`, or None if the height is pinned by genesis/checkpoints.
+        Raises MissingHeader if needed earlier headers are not available."""
+        if constants.net.TESTNET:
+            return None
+        if height <= 0 or height <= constants.net.max_checkpoint():
+            return None
+        if get_header is None:
+            get_header = self._read_header_or_raise
+        return dmd_get_next_work_required(height, get_header)
+
+    def _read_header_or_raise(self, height: int) -> dict:
+        header = self.read_header(height)
+        if header is None:
+            raise MissingHeader(height)
+        return header
+
     def verify_chunk(self, index: int, data: bytes) -> None:
         num = len(data) // HEADER_SIZE
         start_height = index * CHUNK_SIZE
         prev_hash = self.get_hash(start_height - 1)
-        target = self.get_target(index-1)
+        # headers of this chunk (already verified), plus earlier headers read from disk
+        known_headers = {}  # type: Dict[int, dict]
+
+        def get_header(h: int) -> dict:
+            header = known_headers.get(h)
+            if header is None:
+                assert h < start_height, h
+                header = self._read_header_or_raise(h)
+                known_headers[h] = header
+            return header
+
         for i in range(num):
             height = start_height + i
             try:
@@ -394,7 +539,9 @@ class Blockchain(Logger):
                 expected_header_hash = None
             raw_header = data[i*HEADER_SIZE : (i+1)*HEADER_SIZE]
             header = deserialize_header(raw_header, index*CHUNK_SIZE + i)
-            self.verify_header(header, prev_hash, target, expected_header_hash)
+            expected_bits = self.get_expected_bits(height, get_header)
+            self.verify_header(header, prev_hash, expected_bits, expected_header_hash)
+            known_headers[height] = header
             prev_hash = hash_header(header)
 
     @with_lock
@@ -407,6 +554,31 @@ class Blockchain(Logger):
             first_hash = self._forkpoint_hash.lstrip('0')
             basename = f'fork2_{self.forkpoint}_{prev_hash}_{first_hash}'
             return self.bc_mgr.forks_dir / basename
+
+    @with_lock
+    def install_checkpoint_tail(self) -> None:
+        """DebitMyData: LWMA needs the LWMA_WINDOW+1 headers below the first header it verifies.
+        Headers inside the checkpoint region are normally not downloaded, so the last ones are
+        shipped in checkpoints_tail.json and written into the headers file here."""
+        tail = constants.net.CHECKPOINT_TAIL
+        if constants.net.TESTNET or not tail or not self.checkpoints or self.parent is not None:
+            return
+        max_cp = constants.net.max_checkpoint()
+        raw_headers = [bfh(x) for x in tail]
+        if len(raw_headers) < constants.net.LWMA_WINDOW + 1:
+            raise Exception(f"checkpoints_tail.json must contain at least {constants.net.LWMA_WINDOW + 1} headers")
+        start = max_cp - len(raw_headers) + 1
+        prev_hash = None
+        for i, raw in enumerate(raw_headers):
+            header = deserialize_header(raw, start + i)
+            if prev_hash is not None and header['prev_block_hash'] != prev_hash:
+                raise Exception(f"checkpoints_tail.json: headers do not link at height {start + i}")
+            prev_hash = hash_raw_header(raw)
+        if prev_hash != self.checkpoints[-1][0]:
+            raise Exception("checkpoints_tail.json does not end at the last checkpoint in checkpoints.json")
+        if self.read_header(start) is not None and self.read_header(max_cp) is not None:
+            return
+        self.write(b''.join(raw_headers), start * HEADER_SIZE, truncate=False)
 
     @with_lock
     def save_chunk(self, index: int, chunk: bytes):
@@ -590,7 +762,10 @@ class Blockchain(Logger):
             return hash_header(header)
 
     def get_target(self, index: int) -> int:
-        # compute target from chunk x, used in chunk x+1
+        """DebitMyData: difficulty changes every block (LWMA), so a chunk has no single target.
+        This returns the target of the last header of chunk `index` (from checkpoints.json
+        inside the checkpoint region). Only used for checkpoint generation and for the
+        chain work of checkpointed chunks."""
         if constants.net.TESTNET:
             return 0
         if index == -1:
@@ -598,21 +773,10 @@ class Blockchain(Logger):
         if index < len(self.checkpoints):
             h, t = self.checkpoints[index]
             return t
-        # new target
-        first = self.read_header(index * CHUNK_SIZE)
         last = self.read_header((index+1) * CHUNK_SIZE - 1)
-        if not first or not last:
+        if not last:
             raise MissingHeader()
-        bits = last.get('bits')
-        target = self.bits_to_target(bits)
-        nActualTimespan = last.get('timestamp') - first.get('timestamp')
-        nTargetTimespan = 14 * 24 * 60 * 60
-        nActualTimespan = max(nActualTimespan, nTargetTimespan // 4)
-        nActualTimespan = min(nActualTimespan, nTargetTimespan * 4)
-        new_target = min(MAX_TARGET, (target * nActualTimespan) // nTargetTimespan)
-        # not any target can be represented in 32 bits:
-        new_target = self.bits_to_target(self.target_to_bits(new_target))
-        return new_target
+        return self.bits_to_target(last['bits'])
 
     @classmethod
     def bits_to_target(cls, bits: int) -> int:
@@ -652,11 +816,52 @@ class Blockchain(Logger):
             bitsBase >>= 8
         return bitsN << 24 | bitsBase
 
+    def _in_checkpoint_region(self, height: int) -> bool:
+        return 0 <= height < len(self.checkpoints) * CHUNK_SIZE
+
     def chainwork_of_header_at_height(self, height: int) -> int:
         """work done by single header at given height"""
-        chunk_idx = height // CHUNK_SIZE - 1
-        target = self.get_target(chunk_idx)
-        work = ((2 ** 256 - target - 1) // (target + 1)) + 1
+        if self._in_checkpoint_region(height):
+            return _work_from_target(self.get_target(height // CHUNK_SIZE))
+        return _work_from_bits(self._read_header_or_raise(height)['bits'])
+
+    @with_lock
+    def _read_raw_headers(self, start: int, end: int) -> bytes:
+        """Raw headers for heights start..end (inclusive), following parent chains."""
+        if start > end:
+            return b''
+        result = b''
+        if start < self.forkpoint:
+            result += self.parent._read_raw_headers(start, min(end, self.forkpoint - 1))
+            start = self.forkpoint
+        if start <= end:
+            if end > self.height():
+                raise MissingHeader(end)
+            name = self.path()
+            self.assert_headers_file_available(name)
+            with open(name, 'rb') as f:
+                f.seek((start - self.forkpoint) * HEADER_SIZE)
+                data = f.read((end - start + 1) * HEADER_SIZE)
+            if len(data) != (end - start + 1) * HEADER_SIZE:
+                raise MissingHeader(end)
+            result += data
+        return result
+
+    def _work_in_range(self, start: int, end: int) -> int:
+        """Total work of headers start..end (inclusive), all within one chunk."""
+        if start > end:
+            return 0
+        assert start // CHUNK_SIZE == end // CHUNK_SIZE, (start, end)
+        if self._in_checkpoint_region(end):
+            # checkpointed chunk: headers may not be downloaded
+            return (end - start + 1) * _work_from_target(self.get_target(end // CHUNK_SIZE))
+        data = self._read_raw_headers(start, end)
+        work = 0
+        for i in range(end - start + 1):
+            raw = data[i*HEADER_SIZE:(i+1)*HEADER_SIZE]
+            if raw == bytes(HEADER_SIZE):
+                raise MissingHeader(start + i)
+            work += _work_from_bits(int.from_bytes(raw[72:76], byteorder='little'))
         return work
 
     @with_lock
@@ -675,15 +880,13 @@ class Blockchain(Logger):
             cached_height -= CHUNK_SIZE
         assert cached_height >= -1, cached_height
         running_total = _CHAINWORK_CACHE[self.get_hash(cached_height)]
+        # DebitMyData: difficulty changes every block, so sum the work of each header
         while cached_height < last_retarget:
+            work_in_chunk = self._work_in_range(cached_height + 1, cached_height + CHUNK_SIZE)
             cached_height += CHUNK_SIZE
-            work_in_single_header = self.chainwork_of_header_at_height(cached_height)
-            work_in_chunk = CHUNK_SIZE * work_in_single_header
             running_total += work_in_chunk
             _CHAINWORK_CACHE[self.get_hash(cached_height)] = running_total
-        cached_height += CHUNK_SIZE
-        work_in_single_header = self.chainwork_of_header_at_height(cached_height)
-        work_in_last_partial_chunk = (height % CHUNK_SIZE + 1) * work_in_single_header
+        work_in_last_partial_chunk = self._work_in_range(cached_height + 1, height)
         return running_total + work_in_last_partial_chunk
 
     def can_connect(self, header: Optional[dict], *, check_height: bool = True) -> bool:
@@ -701,11 +904,11 @@ class Blockchain(Logger):
         if prev_hash != header.get('prev_block_hash'):
             return False
         try:
-            target = self.get_target(height // CHUNK_SIZE - 1)
+            expected_bits = self.get_expected_bits(height)
         except MissingHeader:
             return False
         try:
-            self.verify_header(header, prev_hash, target)
+            self.verify_header(header, prev_hash, expected_bits)
         except BaseException as e:
             return False
         return True
@@ -721,7 +924,8 @@ class Blockchain(Logger):
             return False
 
     def get_checkpoints(self):
-        # for each chunk, store the hash of the last block and the target after the chunk
+        # for each chunk, store the hash of the last block and the target of that block.
+        # see contrib/dmd_make_checkpoints.py, which also writes checkpoints_tail.json
         cp = []
         n = self.height() // CHUNK_SIZE
         for index in range(n):

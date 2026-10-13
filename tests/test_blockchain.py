@@ -425,10 +425,11 @@ class TestBlockchain(ElectrumTestCase):
 
 
 class TestVerifyHeader(ElectrumTestCase):
+    # DebitMyData: verify_header takes the nBits required by consensus (or None) instead of a target.
 
     # Data for Bitcoin block header #100.
     valid_header = "0100000095194b8567fe2e8bbda931afd01a7acd399b9325cb54683e64129bcd00000000660802c98f18fd34fd16d61c63cf447568370124ac5f3be626c2e1c3c9f0052d19a76949ffff001d33f3c25d"
-    target = Blockchain.bits_to_target(0x1d00ffff)
+    bits = 0x1d00ffff
     prev_hash = "00000000cd9b12643e6854cb25939b39cd7a1ad0af31a9bd8b2efe67854b1995"
 
     def setUp(self):
@@ -436,23 +437,22 @@ class TestVerifyHeader(ElectrumTestCase):
         self.header = deserialize_header(bfh(self.valid_header), 100)
 
     def test_valid_header(self):
-        Blockchain.verify_header(self.header, self.prev_hash, self.target)
+        Blockchain.verify_header(self.header, self.prev_hash, self.bits)
 
     def test_expected_hash_mismatch(self):
         with self.assertRaises(InvalidHeader):
-            Blockchain.verify_header(self.header, self.prev_hash, self.target,
+            Blockchain.verify_header(self.header, self.prev_hash, self.bits,
                                      expected_header_hash="foo")
 
     def test_prev_hash_mismatch(self):
         with self.assertRaises(InvalidHeader):
-            Blockchain.verify_header(self.header, "foo", self.target)
+            Blockchain.verify_header(self.header, "foo", self.bits)
 
     def test_target_mismatch(self):
         with self.assertRaises(InvalidHeader):
-            other_target = Blockchain.bits_to_target(0x1d00eeee)
-            Blockchain.verify_header(self.header, self.prev_hash, other_target)
+            Blockchain.verify_header(self.header, self.prev_hash, 0x1d00eeee)
 
     def test_insufficient_pow(self):
         with self.assertRaises(InvalidHeader):
             self.header["nonce"] = 42
-            Blockchain.verify_header(self.header, self.prev_hash, self.target)
+            Blockchain.verify_header(self.header, self.prev_hash, self.bits)
