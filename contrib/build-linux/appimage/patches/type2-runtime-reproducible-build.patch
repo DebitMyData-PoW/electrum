@@ -102,26 +102,26 @@ index 07b6533..b35cc85 100644
 -    bash alpine-sdk util-linux strace file autoconf automake libtool xz \
 -    eudev-dev gettext-dev linux-headers meson \
 -    zstd-dev zstd-static zlib-dev zlib-static clang musl-dev mimalloc-dev
-+    bash=5.3.9-r1 \
-+    alpine-sdk=1.1-r1 \
-+    util-linux=2.42.3-r1 \
-+    strace=6.19-r1 \
-+    file=5.47-r2 \
-+    autoconf=2.73-r0 \
-+    automake=1.18.1-r1 \
-+    libtool=2.6.0-r1 \
-+    xz=5.8.4-r0 \
-+    eudev-dev=3.2.14-r6 \
-+    gettext-dev=1.0-r0 \
-+    linux-headers=7.0.0-r1 \
-+    meson=1.11.1-r0 \
-+    zstd-dev=1.5.7-r2 \
-+    zstd-static=1.5.7-r2 \
-+    zlib-dev=1.3.2-r0 \
-+    zlib-static=1.3.2-r0 \
-+    clang22=22.1.3-r2 \
-+    musl-dev=1.2.6-r2 \
-+    mimalloc2-dev=2.2.7-r0
++    bash \
++    alpine-sdk \
++    util-linux \
++    strace \
++    file \
++    autoconf \
++    automake \
++    libtool \
++    xz \
++    eudev-dev \
++    gettext-dev \
++    linux-headers \
++    meson \
++    zstd-dev \
++    zstd-static \
++    zlib-dev \
++    zlib-static \
++    clang22 \
++    musl-dev \
++    mimalloc2-dev
 
  COPY scripts/common/install-dependencies.sh /tmp/scripts/common/install-dependencies.sh
  COPY patches/ /tmp/patches/
