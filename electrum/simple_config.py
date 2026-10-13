@@ -687,7 +687,7 @@ class SimpleConfig(Logger):
         long_desc=lambda: (
             _('Set the value of the change output so that it has similar precision to the other outputs.') + '\n' +
             _('This might improve your privacy somewhat.') + '\n' +
-            _('If enabled, at most 100 satoshis might be lost due to this, per transaction.')),
+            _('If enabled, at most 100 data might be lost due to this, per transaction.')),
     )
     WALLET_UNCONF_UTXO_FREEZE_THRESHOLD_SAT = ConfigVar('unconf_utxo_freeze_threshold', default=5_000, type_=int)
     WALLET_PAYREQ_EXPIRY_SECONDS = ConfigVar('request_expiry', default=invoices.PR_DEFAULT_EXPIRATION_WHEN_CREATING, type_=int)
@@ -888,7 +888,7 @@ Warning: setting this to too low will result in lots of payment failures."""),
     )
     BTC_AMOUNTS_ADD_THOUSANDS_SEP = ConfigVar(
         'amt_add_thousands_sep', default=False, type_=bool,
-        short_desc=lambda: _("Add thousand separators to bitcoin amounts"),
+        short_desc=lambda: _("Add thousand separators to DMD amounts"),
     )
 
     BLOCK_EXPLORER = ConfigVar(

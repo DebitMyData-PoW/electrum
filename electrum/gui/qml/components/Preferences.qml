@@ -89,7 +89,7 @@ Pane {
                         }
                         Label {
                             Layout.fillWidth: true
-                            text: qsTr('Add thousands separators to bitcoin amounts')
+                            text: qsTr('Add thousands separators to DMD amounts')
                             wrapMode: Text.Wrap
                         }
                     }
@@ -356,23 +356,27 @@ Pane {
                     }
 
                     PrefsHeading {
+                        visible: Config.lightningSupported
                         Layout.columnSpan: 2
                         text: qsTr('Lightning')
                     }
 
                     Label {
+                        visible: Config.lightningSupported
                         Layout.fillWidth: true
                         text: Config.shortDescFor('LIGHTNING_PAYMENT_FEE_MAX_MILLIONTHS')
                         wrapMode: Text.Wrap
                     }
 
                     Label {
+                        visible: Config.lightningSupported
                         Layout.fillWidth: true
                         text: qsTr('<b>%1%</b> of payment').arg(maxfeeslider._fees[maxfeeslider.value]/10000)
                         wrapMode: Text.Wrap
                     }
 
                     Slider {
+                        visible: Config.lightningSupported
                         id: maxfeeslider
                         Layout.columnSpan: 2
                         Layout.fillWidth: true
@@ -397,6 +401,7 @@ Pane {
                     }
 
                     RowLayout {
+                        visible: Config.lightningSupported
                         Layout.columnSpan: 2
                         Layout.fillWidth: true
                         spacing: 0
@@ -432,6 +437,7 @@ Pane {
                     }
 
                     RowLayout {
+                        visible: Config.lightningSupported
                         Layout.columnSpan: 2
                         Layout.fillWidth: true
                         spacing: 0

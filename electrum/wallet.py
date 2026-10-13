@@ -190,10 +190,10 @@ async def sweep(
     tx = PartialTransaction.from_io(inputs, outputs)
     fee = fee_policy.estimate_fee(tx.estimated_size(), network=network)
     if total - fee < 0:
-        raise Exception(_('Not enough funds on address.') + '\nTotal: %d satoshis\nFee: %d' % (total, fee))
+        raise Exception(_('Not enough funds on address.') + '\nTotal: %d data\nFee: %d' % (total, fee))
     if total - fee < dust_threshold(network):
         raise Exception(_('Not enough funds on address.') +
-                        '\nTotal: %d satoshis\nFee: %d\nDust Threshold: %d' % (total, fee, dust_threshold(network)))
+                        '\nTotal: %d data\nFee: %d\nDust Threshold: %d' % (total, fee, dust_threshold(network)))
     outputs = [PartialTxOutput(scriptpubkey=bitcoin.address_to_script(to_address), value=total - fee)]
     if locktime is None:
         locktime = get_locktime_for_new_transaction(network)
@@ -886,7 +886,7 @@ class Abstract_Wallet(ABC, Logger, EventListener):
         if self.is_watching_only():
             raise UserFacingException(_("This is a watching-only wallet"))
         if not is_address(address):
-            raise UserFacingException(_('Invalid bitcoin address: {}').format(address))
+            raise UserFacingException(_('Invalid DebitMyData address: {}').format(address))
         if not self.is_mine(address):
             raise UserFacingException(_('Address not in wallet: {}').format(address))
         index = self.get_address_index(address)
@@ -3285,7 +3285,7 @@ class Abstract_Wallet(ABC, Logger, EventListener):
             address = address.strip()
             message = message.strip()
         if not bitcoin.is_address(address):
-            raise UserFacingException(_("Invalid Bitcoin address."))
+            raise UserFacingException(_("Invalid DebitMyData address."))
         if self.is_watching_only():
             raise UserFacingException(_("This is a watching-only wallet."))
         if not self.is_mine(address):
@@ -3317,7 +3317,7 @@ class Abstract_Wallet(ABC, Logger, EventListener):
             signature = signature.strip()
             message = message.strip()
         if not is_address(address):
-            raise UserFacingException(_("Invalid Bitcoin address."))
+            raise UserFacingException(_("Invalid DebitMyData address."))
         try:
             sig = base64.b64decode(signature, validate=True)
         except ValueError:

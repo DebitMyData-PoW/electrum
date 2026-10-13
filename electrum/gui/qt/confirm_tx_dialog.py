@@ -267,7 +267,7 @@ class TxEditor(WindowModalDialog, SubmarineSwapMixin, Logger):
         def feerounding_onclick():
             text = (self.feerounding_text() + '\n\n' +
                     _('To somewhat protect your privacy, Electrum tries to create change with similar precision to other outputs.') + ' ' +
-                    _('At most 100 satoshis might be lost due to this rounding.') + ' ' +
+                    _('At most 100 data might be lost due to this rounding.') + ' ' +
                     _("You can disable this setting in '{}'.").format(_('Preferences')) + '\n' +
                     _('Also, dust is not kept as change, but added to the fee.')  + '\n' +
                     _('Also, when batching RBF transactions, BIP 125 imposes a lower bound on the fee.'))
@@ -372,7 +372,7 @@ class TxEditor(WindowModalDialog, SubmarineSwapMixin, Logger):
                and (bool(self.feerate_e.text()) or self.feerate_e.hasFocus())
 
     def feerounding_text(self):
-        return (_('Additional {} satoshis are going to be added.').format(self.feerounding_sats))
+        return (_('Additional {} data are going to be added.').format(self.feerounding_sats))
 
     def set_feerounding_visibility(self, b:bool):
         # we do not use setVisible because it affects the layout
@@ -1087,7 +1087,7 @@ class ConfirmTxDialog(TxEditor):
         grid.addWidget(HelpLabel(_("Amount to be sent") + ": ", msg), 0, 0)
         grid.addWidget(self.amount_label, 0, 1)
 
-        msg = _('Bitcoin transactions are in general not free. A transaction fee is paid by the sender of the funds.') + '\n\n'\
+        msg = _('DebitMyData transactions are in general not free. A transaction fee is paid by the sender of the funds.') + '\n\n'\
               + _('The amount of fee can be decided freely by the sender. However, transactions with low fees take more time to be processed.') + '\n\n'\
               + _('A suggested fee is automatically added to this field. You may override it. The suggested fee increases with the size of the transaction.')
 

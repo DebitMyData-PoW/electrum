@@ -110,7 +110,7 @@ def satoshis(amount):
 def format_satoshis(x: Union[float, int, Decimal, None]) -> Optional[str]:
     """
     input: satoshis as a Number
-    output: str formatted as bitcoin amount
+    output: str formatted as DMD amount
     """
     if x is None:
         return None
@@ -326,8 +326,8 @@ class Commands(Logger):
     @command('')
     async def restore(self, text, passphrase=None, password=None, encrypt_file=True, wallet_path=None):
         """Restore a wallet from text. Text can be a seed phrase, a master
-        public key, a master private key, a list of bitcoin addresses
-        or bitcoin private keys.
+        public key, a master private key, a list of DebitMyData addresses
+        or DebitMyData private keys.
         If you want to be prompted for an argument, type '?' or ':' (concealed)
 
         arg:str:text:seed phrase
@@ -479,7 +479,7 @@ class Commands(Logger):
         Return the transaction history of any address. Note: This is a
         walletless server query, results are not checked by SPV.
 
-        arg:str:address:Bitcoin address
+        arg:str:address:DebitMyData address
         """
         sh = bitcoin.address_to_scripthash(address)
         return await self.network.get_history_for_scripthash(sh)
@@ -507,7 +507,7 @@ class Commands(Logger):
         Returns the UTXO list of any address. Note: This
         is a walletless server query, results are not checked by SPV.
 
-        arg:str:address:Bitcoin address
+        arg:str:address:DebitMyData address
         """
         sh = bitcoin.address_to_scripthash(address)
         return await self.network.listunspent_for_scripthash(sh)
@@ -650,7 +650,7 @@ class Commands(Logger):
         """
         Freeze address. Freeze the funds at one of your wallet\'s addresses
 
-        arg:str:address:Bitcoin address
+        arg:str:address:DebitMyData address
         """
         return wallet.set_frozen_state_of_addresses([address], True)
 
@@ -659,7 +659,7 @@ class Commands(Logger):
         """
         Unfreeze address. Unfreeze the funds at one of your wallet\'s address
 
-        arg:str:address:Bitcoin address
+        arg:str:address:DebitMyData address
         """
         return wallet.set_frozen_state_of_addresses([address], False)
 
@@ -687,7 +687,7 @@ class Commands(Logger):
         """
         Get private keys of addresses. You may pass a single wallet address, or a list of wallet addresses.
 
-        arg:str:address:Bitcoin address
+        arg:str:address:DebitMyData address
         """
         if isinstance(address, str):
             address = address.strip()
@@ -709,7 +709,7 @@ class Commands(Logger):
         """
         Check if address is in wallet. Return true if and only address is in wallet
 
-        arg:str:address:Bitcoin address
+        arg:str:address:DebitMyData address
         """
         return wallet.is_mine(address)
 
@@ -722,7 +722,7 @@ class Commands(Logger):
     async def validateaddress(self, address):
         """Check that an address is valid.
 
-        arg:str:address:Bitcoin address
+        arg:str:address:DebitMyData address
         """
         return is_address(address)
 
@@ -731,7 +731,7 @@ class Commands(Logger):
         """
         Return the public keys for a wallet address.
 
-        arg:str:address:Bitcoin address
+        arg:str:address:DebitMyData address
         """
         return wallet.get_public_keys(address)
 
@@ -755,7 +755,7 @@ class Commands(Logger):
         Return the balance of any address. Note: This is a walletless
         server query, results are not checked by SPV.
 
-        arg:str:address:Bitcoin address
+        arg:str:address:DebitMyData address
         """
         sh = bitcoin.address_to_scripthash(address)
         out = await self.network.get_balance_for_scripthash(sh)
@@ -892,9 +892,9 @@ class Commands(Logger):
         privkey to a destination address. The transaction will not be broadcast.
 
         arg:str:privkey:Private key. Type \'?\' to get a prompt.
-        arg:str:destination:Bitcoin address, contact or alias
-        arg:decimal:fee:Transaction fee (absolute, in BTC)
-        arg:decimal:feerate:Transaction fee rate (in sat/vbyte)
+        arg:str:destination:DebitMyData address, contact or alias
+        arg:decimal:fee:Transaction fee (absolute, in DMD)
+        arg:decimal:feerate:Transaction fee rate (in data/vbyte)
         arg:int:imax:Maximum number of inputs
         """
         from .wallet import sweep
@@ -915,7 +915,7 @@ class Commands(Logger):
         """Sign a message with a key. Use quotes if your message contains
         whitespaces
 
-        arg:str:address:Bitcoin address
+        arg:str:address:DebitMyData address
         arg:str:message:Clear text message. Use quotes if it contains spaces.
         """
         if not isinstance(address, str):
@@ -934,7 +934,7 @@ class Commands(Logger):
     async def verifymessage(self, address, signature, message):
         """Verify a signature.
 
-        arg:str:address:Bitcoin address
+        arg:str:address:DebitMyData address
         arg:str:message:Clear text message. Use quotes if it contains spaces.
         arg:str:signature:The signature, base64-encoded.
         """
@@ -969,10 +969,10 @@ class Commands(Logger):
                     unsigned=False, rbf=True, password=None, locktime=None, addtransaction=False, wallet: Abstract_Wallet = None):
         """Create an on-chain transaction.
 
-        arg:str:destination:Bitcoin address, contact or alias
-        arg:decimal_or_max:amount:Amount to be sent (in BTC). Type '!' to send the maximum available.
-        arg:decimal:fee:Transaction fee (absolute, in BTC)
-        arg:decimal:feerate:Transaction fee rate (in sat/vbyte)
+        arg:str:destination:DebitMyData address, contact or alias
+        arg:decimal_or_max:amount:Amount to be sent (in DMD). Type '!' to send the maximum available.
+        arg:decimal:fee:Transaction fee (absolute, in DMD)
+        arg:decimal:feerate:Transaction fee rate (in data/vbyte)
         arg:str:from_addr:Source address (must be a wallet address; use sweep to spend from non-wallet address)
         arg:str:change_addr:Change address. Default is a spare address, or the source address if it's not in the wallet
         arg:bool:rbf:Whether to signal opt-in Replace-By-Fee in the transaction (true/false)
@@ -1001,10 +1001,10 @@ class Commands(Logger):
                         unsigned=False, rbf=True, password=None, locktime=None, addtransaction=False, wallet: Abstract_Wallet = None):
         """Create a multi-output transaction.
 
-        arg:json:outputs:json list of ["address", "amount in BTC"]
+        arg:json:outputs:json list of ["address", "amount in DMD"]
         arg:bool:rbf:Whether to signal opt-in Replace-By-Fee in the transaction (true/false)
-        arg:decimal:fee:Transaction fee (absolute, in BTC)
-        arg:decimal:feerate:Transaction fee rate (in sat/vbyte)
+        arg:decimal:fee:Transaction fee (absolute, in DMD)
+        arg:decimal:feerate:Transaction fee rate (in data/vbyte)
         arg:str:from_addr:Source address (must be a wallet address; use sweep to spend from non-wallet address)
         arg:str:change_addr:Change address. Default is a spare address, or the source address if it's not in the wallet
         arg:bool:addtransaction:Whether transaction is to be used for broadcasting afterwards. Adds transaction to the wallet
@@ -1071,7 +1071,7 @@ class Commands(Logger):
         'tx' can be either a raw hex tx or a txid. If txid, the corresponding tx must already be part of the wallet history.
 
         arg:str:tx:Serialized transaction (hexadecimal)
-        arg:str:new_fee_rate: The Updated/Increased Transaction fee rate (in sats/vbyte)
+        arg:str:new_fee_rate: The Updated/Increased Transaction fee rate (in data/vbyte)
         arg:bool:decrease_payment:Whether payment amount will be decreased (true/false)
         arg:bool:unsigned:Do not sign transaction
         arg:json:from_coins:Coins that may be used to inncrease the fee (must be in wallet)
@@ -1150,7 +1150,7 @@ class Commands(Logger):
     @command('w')
     async def setlabel(self, key, label, wallet: Abstract_Wallet = None):
         """
-        Assign a label to an item. Item may be a bitcoin address or a
+        Assign a label to an item. Item may be a DebitMyData address or a
         transaction ID
 
         arg:str:key:Key
@@ -1378,7 +1378,7 @@ class Commands(Logger):
         The address will be considered as used after this operation.
         If no payment is received, the address will be considered as unused if the payment request is deleted from the wallet.
 
-        arg:decimal:amount:Requested amount (in btc)
+        arg:decimal:amount:Requested amount (in DMD)
         arg:str:memo:Description of the request
         arg:bool:force:Create new address beyond gap limit, if no more addresses are available.
         arg:bool:lightning:Create lightning request.
@@ -1416,7 +1416,7 @@ class Commands(Logger):
         from getting failed accidentally.
 
         arg:str:payment_hash:Hex encoded payment hash to be used for the invoice
-        arg:decimal:amount:Optional requested amount (in btc)
+        arg:decimal:amount:Optional requested amount (in DMD)
         arg:str:memo:Optional description of the invoice
         arg:int:expiry:Optional expiry in seconds (default: 3600s)
         arg:int:min_final_cltv_expiry_delta:Optional min final cltv expiry delta (default: 294 blocks)
@@ -1605,7 +1605,7 @@ class Commands(Logger):
         Watch an address. Every time the address changes, a http POST is sent to the URL.
         Call with an empty URL to stop watching an address.
 
-        arg:str:address:Bitcoin address
+        arg:str:address:DebitMyData address
         arg:str:URL:The callback URL
         """
         if not hasattr(self, "_notifier"):
@@ -1632,7 +1632,7 @@ class Commands(Logger):
     @command('n')
     async def getfeerate(self):
         """
-        Return current fee estimate given network conditions (in sat/kvByte).
+        Return current fee estimate given network conditions (in data/kvByte).
         To change the fee policy, use 'getconfig/setconfig fee_policy'
         """
         fee_policy = FeePolicy(self.config.FEE_POLICY)
@@ -1766,8 +1766,8 @@ class Commands(Logger):
         Open a lightning channel with a peer
 
         arg:str:connection_string:Lightning network node ID or network address
-        arg:decimal_or_max:amount:funding amount (in BTC)
-        arg:decimal:push_amount:Push initial amount (in BTC)
+        arg:decimal_or_max:amount:funding amount (in DMD)
+        arg:decimal:push_amount:Push initial amount (in DMD)
         arg:bool:public:The channel will be announced
         arg:bool:zeroconf:request zeroconf channel
         """
@@ -2088,7 +2088,7 @@ class Commands(Logger):
 
         arg:str:from_scid:Short channel ID
         arg:str:dest_scid:Short channel ID
-        arg:decimal:amount:Amount (in BTC)
+        arg:decimal:amount:Amount (in DMD)
 
         """
         from .lnutil import ShortChannelID
@@ -2136,11 +2136,11 @@ class Commands(Logger):
     @command('wnpl')
     async def normal_swap(self, onchain_amount, lightning_amount, password=None, wallet: Abstract_Wallet = None):
         """
-        Normal submarine swap: send on-chain BTC, receive on Lightning.
+        Normal submarine swap: send on-chain DMD, receive on Lightning.
         Note: fees can change between the dryrun and the following swap request, causing the request to error and require a new dryrun.
 
-        arg:decimal_or_dryrun:lightning_amount:Amount to be received, in BTC. Set it to 'dryrun' to receive a value
-        arg:decimal_or_dryrun:onchain_amount:Amount to be sent, in BTC. Set it to 'dryrun' to receive a value
+        arg:decimal_or_dryrun:lightning_amount:Amount to be received, in DMD. Set it to 'dryrun' to receive a value
+        arg:decimal_or_dryrun:onchain_amount:Amount to be sent, in DMD. Set it to 'dryrun' to receive a value
         """
         sm = wallet.lnworker.swap_manager
         assert self.config.SWAPSERVER_NPUB or self.config.SWAPSERVER_URL, \
@@ -2189,8 +2189,8 @@ class Commands(Logger):
         Reverse submarine swap: send on Lightning, receive on-chain.
         Note: fees can change between the dryrun and the following swap request, causing the request to error and require a new dryrun.
 
-        arg:decimal_or_dryrun:lightning_amount:Amount to be sent, in BTC. Set it to 'dryrun' to receive a value
-        arg:decimal_or_dryrun:onchain_amount:Amount to be received, in BTC. Set it to 'dryrun' to receive a value
+        arg:decimal_or_dryrun:lightning_amount:Amount to be sent, in DMD. Set it to 'dryrun' to receive a value
+        arg:decimal_or_dryrun:onchain_amount:Amount to be received, in DMD. Set it to 'dryrun' to receive a value
         arg:decimal_or_dryrun:prepayment:Lightning payment required by the swap provider in order to cover their mining fees. This is included in lightning_amount. However, this part of the operation is not trustless; the provider is trusted to fail this payment if the swap fails.
         """
         sm = wallet.lnworker.swap_manager
@@ -2407,10 +2407,10 @@ config_variables = {
     'addrequest': {
         'ssl_privkey': 'Path to your SSL private key, needed to sign the request.',
         'ssl_chain': 'Chain of SSL certificates, needed for signed requests. Put your certificate at the top and the root CA at the end',
-        'url_rewrite': 'Parameters passed to str.replace(), in order to create the r= part of bitcoin: URIs. Example: \"(\'file:///var/www/\',\'https://electrum.org/\')\"',
+        'url_rewrite': 'Parameters passed to str.replace(), in order to create the r= part of debitmydata: URIs. Example: \"(\'file:///var/www/\',\'https://electrum.org/\')\"',
     },
     'listrequests': {
-        'url_rewrite': 'Parameters passed to str.replace(), in order to create the r= part of bitcoin: URIs. Example: \"(\'file:///var/www/\',\'https://electrum.org/\')\"',
+        'url_rewrite': 'Parameters passed to str.replace(), in order to create the r= part of debitmydata: URIs. Example: \"(\'file:///var/www/\',\'https://electrum.org/\')\"',
     }
 }
 
@@ -2564,7 +2564,7 @@ def get_parser():
     subparsers = parser.add_subparsers(dest='cmd', metavar='<command>')
     # gui
     parser_gui = subparsers.add_parser('gui', description="Run Electrum's Graphical User Interface.", help="Run GUI (default)")
-    parser_gui.add_argument("url", nargs='?', default=None, help="bitcoin URI")
+    parser_gui.add_argument("url", nargs='?', default=None, help="debitmydata URI")
     parser_gui.add_argument("-g", "--gui", dest=SimpleConfig.GUI_NAME.key(), help="select graphical user interface", choices=['qt', 'text', 'stdio', 'qml'])
     parser_gui.add_argument("-m", action="store_true", dest=SimpleConfig.GUI_QT_HIDE_ON_STARTUP.key(), default=False, help="hide GUI on startup")
     parser_gui.add_argument("-L", "--lang", dest=SimpleConfig.LOCALIZATION_LANGUAGE.key(), default=None, help="default language used in GUI")

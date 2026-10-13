@@ -32,12 +32,12 @@ def parse_bip21_URI(uri: str) -> dict:
 
     if ':' not in uri:
         if not bitcoin.is_address(uri):
-            raise InvalidBitcoinURI("Not a bitcoin address")
+            raise InvalidBitcoinURI("Not a DebitMyData address")
         return {'address': uri}
 
     u = urllib.parse.urlparse(uri)
     if u.scheme.lower() != BITCOIN_BIP21_URI_SCHEME:
-        raise InvalidBitcoinURI("Not a bitcoin URI")
+        raise InvalidBitcoinURI("Not a DebitMyData URI")
     address = u.path
 
     # python for android fails to parse query
@@ -57,7 +57,7 @@ def parse_bip21_URI(uri: str) -> dict:
     out = {k: v[0] for k, v in pq.items()}
     if address:
         if not bitcoin.is_address(address):
-            raise InvalidBitcoinURI(f"Invalid bitcoin address: {address}")
+            raise InvalidBitcoinURI(f"Invalid DebitMyData address: {address}")
         out['address'] = address
     if 'amount' in out:
         am = out['amount']
@@ -69,7 +69,7 @@ def parse_bip21_URI(uri: str) -> dict:
             else:
                 amount = Decimal(am) * COIN
             if amount > TOTAL_COIN_SUPPLY_LIMIT_IN_BTC * COIN or amount <= 0:
-                raise InvalidBitcoinURI(f"amount is out-of-bounds: {amount!r} BTC")
+                raise InvalidBitcoinURI(f"amount is out-of-bounds: {amount!r} DMD")
             out['amount'] = int(amount)
         except Exception as e:
             raise InvalidBitcoinURI(f"failed to parse 'amount' field: {repr(e)}") from e

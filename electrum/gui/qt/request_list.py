@@ -200,9 +200,9 @@ class RequestList(MyTreeView):
         menu = QMenu(self)
         copy_menu = self.add_copy_menu(menu, idx)
         if req.get_address():
-            copy_menu.addAction(_("Address"), lambda: self.main_window.do_copy(req.get_address(), title='Bitcoin Address'))
+            copy_menu.addAction(_("Address"), lambda: self.main_window.do_copy(req.get_address(), title='DebitMyData Address'))
         if URI := self.wallet.get_request_URI(req):
-            copy_menu.addAction(_("Bitcoin URI"), lambda: self.main_window.do_copy(URI, title='Bitcoin URI'))
+            copy_menu.addAction(_("DebitMyData URI"), lambda: self.main_window.do_copy(URI, title='DebitMyData URI'))
         if req.is_lightning():
             copy_menu.addAction(_("Lightning Request"), lambda: self.main_window.do_copy(self.wallet.get_bolt11_invoice(req), title='Lightning Request'))
         #if 'view_url' in req:

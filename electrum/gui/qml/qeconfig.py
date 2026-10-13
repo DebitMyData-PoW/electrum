@@ -9,6 +9,7 @@ from electrum.i18n import set_language, get_gui_lang_names
 from electrum.logging import get_logger
 from electrum.util import base_unit_name_to_decimal_point
 from electrum.gui import messages
+from electrum import constants
 
 from .qetypes import QEAmount
 from .auth import AuthMixin, auth_protect
@@ -67,6 +68,11 @@ class QEConfig(AuthMixin, QObject):
         return langs_list
 
     termsOfUseChanged = pyqtSignal()
+    @pyqtProperty(bool, constant=True)
+    def lightningSupported(self):
+        # DebitMyData: no Lightning network; hides Lightning preferences
+        return constants.net.LIGHTNING_SUPPORTED
+
     @pyqtProperty(bool, notify=termsOfUseChanged)
     def termsOfUseAccepted(self) -> bool:
         return self.config.TERMS_OF_USE_ACCEPTED >= messages.TERMS_OF_USE_LATEST_VERSION
