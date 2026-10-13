@@ -1,13 +1,15 @@
 [app]
 
 # (str) Title of your application
-title = Electrum
+title = DebitMyData Electrum
 
 # (str) Package name
 package.name = Electrum
 
 # (str) Package domain (needed for android/ios packaging)
-package.domain = org.electrum
+# DebitMyData: the app ID is package.domain + "." + package.name.lower() = io.debitmydata.electrum
+# (package.name is kept as "Electrum" on purpose, see make_apk.sh)
+package.domain = io.debitmydata
 
 # (str) Source code where the main.py live
 source.dir = .
