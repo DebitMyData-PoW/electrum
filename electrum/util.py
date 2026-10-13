@@ -97,18 +97,19 @@ def all_subclasses(cls) -> Set:
 ca_path = certifi.where()
 
 
-base_units = {'BTC':8, 'mBTC':5, 'bits':2, 'sat':0}
+# DebitMyData units: "debits" = µDMD (Bitcoin's "bits"), "data" = smallest unit (Bitcoin's "sat")
+base_units = {'DMD':8, 'mDMD':5, 'debits':2, 'data':0}
 base_units_inverse = inv_dict(base_units)
-base_units_list = ['BTC', 'mBTC', 'bits', 'sat']  # list(dict) does not guarantee order
+base_units_list = ['DMD', 'mDMD', 'debits', 'data']  # list(dict) does not guarantee order
 
-DECIMAL_POINT_DEFAULT = 5  # mBTC
+DECIMAL_POINT_DEFAULT = 8  # DMD
 
 
 class UnknownBaseUnit(Exception): pass
 
 
 def decimal_point_to_base_unit_name(dp: int) -> str:
-    # e.g. 8 -> "BTC"
+    # e.g. 8 -> "DMD"
     try:
         return base_units_inverse[dp]
     except KeyError:
@@ -117,7 +118,7 @@ def decimal_point_to_base_unit_name(dp: int) -> str:
 
 def base_unit_name_to_decimal_point(unit_name: str) -> int:
     """Returns the max number of digits allowed after the decimal point."""
-    # e.g. "BTC" -> 8
+    # e.g. "DMD" -> 8
     try:
         return base_units[unit_name]
     except KeyError:
@@ -698,11 +699,11 @@ def user_dir():
     elif 'ANDROID_DATA' in os.environ:
         return android_data_dir()
     elif os.name == 'posix':
-        return os.path.join(os.environ["HOME"], ".electrum")
+        return os.path.join(os.environ["HOME"], ".debitmydata-electrum")
     elif "APPDATA" in os.environ:
-        return os.path.join(os.environ["APPDATA"], "Electrum")
+        return os.path.join(os.environ["APPDATA"], "DebitMyData-Electrum")
     elif "LOCALAPPDATA" in os.environ:
-        return os.path.join(os.environ["LOCALAPPDATA"], "Electrum")
+        return os.path.join(os.environ["LOCALAPPDATA"], "DebitMyData-Electrum")
     else:
         #raise Exception("No home directory found in environment variables.")
         return
@@ -880,11 +881,11 @@ def format_satoshis(
 
 FEERATE_PRECISION = 1  # num fractional decimal places for sat/byte fee rates
 _feerate_quanta = Decimal(10) ** (-FEERATE_PRECISION)
-UI_UNIT_NAME_FEERATE_SAT_PER_VBYTE = "sat/vbyte"
-UI_UNIT_NAME_FEERATE_SAT_PER_VB = "sat/vB"
+UI_UNIT_NAME_FEERATE_SAT_PER_VBYTE = "data/vbyte"
+UI_UNIT_NAME_FEERATE_SAT_PER_VB = "data/vB"
 UI_UNIT_NAME_TXSIZE_VBYTES = "vbytes"
 UI_UNIT_NAME_MEMPOOL_MB = "vMB"
-UI_UNIT_NAME_FIXED_SAT = "sat"
+UI_UNIT_NAME_FIXED_SAT = "data"
 
 
 def format_fee_satoshis(fee, *, num_zeros=0, precision=None):
@@ -968,37 +969,7 @@ def delta_time_str(distance_in_time: timedelta, *, include_seconds: bool = False
 
 
 mainnet_block_explorers = {
-    '3xpl.com': ('https://3xpl.com/bitcoin/',
-                        {'tx': 'transaction/', 'addr': 'address/'}),
-    'Bitflyer.jp': ('https://chainflyer.bitflyer.jp/',
-                        {'tx': 'Transaction/', 'addr': 'Address/'}),
-    'Blockchain.info': ('https://blockchain.com/btc/',
-                        {'tx': 'tx/', 'addr': 'address/'}),
-    'Blockstream.info': ('https://blockstream.info/',
-                        {'tx': 'tx/', 'addr': 'address/'}),
-    'Bitaps.com': ('https://btc.bitaps.com/',
-                        {'tx': '', 'addr': ''}),
-    'BTC.com': ('https://btc.com/',
-                        {'tx': '', 'addr': ''}),
-    'Chain.so': ('https://www.chain.so/',
-                        {'tx': 'tx/BTC/', 'addr': 'address/BTC/'}),
-    'Insight.is': ('https://insight.bitpay.com/',
-                        {'tx': 'tx/', 'addr': 'address/'}),
-    'BlockCypher.com': ('https://live.blockcypher.com/btc/',
-                        {'tx': 'tx/', 'addr': 'address/'}),
-    'Blockchair.com': ('https://blockchair.com/bitcoin/',
-                        {'tx': 'transaction/', 'addr': 'address/'}),
-    'blockonomics.co': ('https://www.blockonomics.co/',
-                        {'tx': 'api/tx?txid=', 'addr': '#/search?q='}),
-    'mempool.space': ('https://mempool.space/',
-                        {'tx': 'tx/', 'addr': 'address/'}),
-    'mempool.emzy.de': ('https://mempool.emzy.de/',
-                        {'tx': 'tx/', 'addr': 'address/'}),
-    'OXT.me': ('https://oxt.me/',
-                        {'tx': 'transaction/', 'addr': 'address/'}),
-    'mynode.local': ('http://mynode.local:3002/',
-                        {'tx': 'tx/', 'addr': 'address/'}),
-    'system default': ('blockchain:/',
+    'chain.debitmydata.io': ('https://chain.debitmydata.io/',
                         {'tx': 'tx/', 'addr': 'address/'}),
 }
 
