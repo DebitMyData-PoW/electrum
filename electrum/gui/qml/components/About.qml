@@ -6,7 +6,7 @@ import QtQuick.Controls.Material
 Pane {
     objectName: 'About'
 
-    property string title: qsTr("About Electrum")
+    property string title: qsTr("About DMD Electrum Wallet")
 
     Flickable {
         anchors.fill: parent
@@ -90,7 +90,7 @@ Pane {
                 Layout.columnSpan: 2
             }
             Label {
-                text: qsTr('DebitMyData-Electrum, based on Electrum by Electrum Technologies GmbH')
+                text: qsTr('DMD Electrum Wallet, based on Electrum by Electrum Technologies GmbH')
                 Layout.columnSpan: 2
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter

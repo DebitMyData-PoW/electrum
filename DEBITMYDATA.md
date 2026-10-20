@@ -16,6 +16,7 @@ Chain parameters follow DebitMyData Core v1.3.3 (`src/kernel/chainparams.cpp`, `
 | Payment links | `debitmydata:` |
 | Signed messages | prefix `DebitMyData Signed Message:\n` (DMD Core `MESSAGE_MAGIC`) |
 | Android app ID | `io.debitmydata.electrum` |
+| Android app name | DMD Electrum Wallet (`title` in `contrib/android/buildozer_qml.spec`; the app ID must never change, or phones treat it as a different app) |
 | Units | DMD, mDMD, debits (µDMD), data (smallest unit); fee rates in data/vB |
 | Data folder | `%APPDATA%\DebitMyData-Electrum`, `~/.debitmydata-electrum` |
 | Servers | `electrum01`–`electrum06.debitmydata.network` (`electrum/chains/mainnet/servers.json`) |

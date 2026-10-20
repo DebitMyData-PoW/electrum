@@ -1,10 +1,10 @@
-DebitMyData Electrum is a libre self-custodial wallet for DebitMyData (DMD), based on the Electrum wallet.
+DMD Electrum Wallet is a libre self-custodial wallet for DebitMyData (DMD), based on the Electrum wallet.
 
 Features:
 • Safe: Your private keys are encrypted and never leave your device.
 • Open-source: MIT-licensed free/libre open-source software.
 • Forgiving: Your wallet can be recovered from a secret phrase.
-• Instant On: DebitMyData Electrum uses servers that index the DebitMyData blockchain, making it fast.
+• Instant On: DMD Electrum Wallet uses servers that index the DebitMyData blockchain, making it fast.
 • No Lock-In: You can export your private keys and use them in other DebitMyData clients.
 • Proof Checking: The wallet verifies all the transactions in your history using SPV, and checks DebitMyData's proof of work on every block header.
 • Cold Storage: Keep your private keys offline and go online with a watching-only wallet.

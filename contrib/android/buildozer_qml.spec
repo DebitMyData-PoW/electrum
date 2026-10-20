@@ -1,7 +1,7 @@
 [app]
 
 # (str) Title of your application
-title = DebitMyData Electrum
+title = DMD Electrum Wallet
 
 # (str) Package name
 package.name = Electrum
