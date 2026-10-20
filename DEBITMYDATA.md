@@ -9,7 +9,7 @@ Chain parameters follow DebitMyData Core v1.3.3 (`src/kernel/chainparams.cpp`, `
 |---|---|
 | Addresses | P2PKH version 30, P2SH 31, bech32 HRP `dm`, WIF 0x9e (158) |
 | Extended keys | standard xpub/xprv headers `0x04dab21e` / `0x04daade4` (DMD Core `EXT_PUBLIC_KEY` / `EXT_SECRET_KEY`) |
-| BIP44 coin type | 4134 (SLIP-0044 "DebitMyData") |
+| BIP44 coin type | 4134 (SLIP-0044 "DebitMyData"): suggested paths `m/44'/4134'/0'`, `m/49'/4134'/0'`, `m/84'/4134'/0'` and `m/48'/4134'/…` when restoring a BIP39 seed (desktop and Android). "Detect Existing Accounts" also scans the coin type 0 paths of the earlier DebitMyData-Electrum (4.7 fork). Wallets created with an Electrum seed use Electrum's fixed path (`m/0'` for segwit), which has no coin type, as in upstream Electrum |
 | Genesis | `00000992d19e3ed58ddf4117b597955752ff029e7256487a47557a24aeb4cadd` |
 | Difficulty | legacy retarget every 8 blocks below height 120, LWMA (N=60, T=150 s) from 120 — exact port of DMD Core, incl. 256-bit wrap-around |
 | Chain anchor | block 70159 must be `00000000000004b1c66c5c86b9af015e2c8c972a3e6c22b6fb3b0c799388db2a` (DMD Core `mandatory_block_hash`) |
@@ -232,5 +232,5 @@ There is no iOS version: Electrum only supports Android on mobile.
 
 Most of Electrum's own tests use Bitcoin mainnet vectors (`bc1…`/`1…` addresses, `xpub` keys,
 `bitcoin:` URIs, `lnbc` invoices) or disabled features (Lightning, 2FA, Trezor), so about 160 of them
-fail on this fork by design. Run `pytest tests/test_dmd_blockchain.py tests/test_dmd_params.py tests/test_blockchain.py`
+fail on this fork by design. Run `pytest tests/test_dmd_blockchain.py tests/test_dmd_params.py tests/test_dmd_derivation.py tests/test_blockchain.py`
 for the DebitMyData-specific checks.

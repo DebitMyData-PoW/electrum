@@ -74,12 +74,12 @@ WizardComponent {
                 derivationpathtext.text = "m/" + p[scripttype] + "'/0"
             else
                 derivationpathtext.text = "m/" + p[scripttype] + "'/"
-                + (Network.isTestNet ? 1 : 0) + "'/0'/"
+                + Network.bip44CoinType + "'/0'/"
                 + (scripttype == 'p2wsh' ? 2 : 1) + "'"
         } else {
             derivationpathtext.text =
                 "m/" + p[scripttypegroup.checkedButton.scripttype] + "'/"
-                + (Network.isTestNet ? 1 : 0) + "'/0'"
+                + Network.bip44CoinType + "'/0'"
         }
     }
 

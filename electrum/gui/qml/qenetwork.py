@@ -261,6 +261,11 @@ class QENetwork(QObject, QtEventListener):
     def isTestNet(self):
         return constants.net.TESTNET
 
+    @pyqtProperty(int, notify=dataChanged)
+    def bip44CoinType(self):
+        # DebitMyData: coin type for BIP44/49/84/48 derivation paths (4134 on mainnet)
+        return constants.net.BIP44_COIN_TYPE
+
     @pyqtProperty(str, notify=dataChanged)
     def networkName(self):
         return constants.net.__name__.replace('Bitcoin', '')
