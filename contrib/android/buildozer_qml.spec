@@ -33,6 +33,7 @@ source.exclude_dirs =
     electrum/scripts,
     electrum/utils,
     electrum/gui/qt,
+    electrum/gui/qml/android_res,
     electrum/plugins/audio_modem,
     electrum/plugins/bitbox02,
     electrum/plugins/coldcard,
@@ -185,7 +186,11 @@ android.add_activities = org.electrum.qr.SimpleScannerActivity, org.electrum.bio
 # 3) A directory, here 'legal_resources' must contain one or more directories,
 # each of a resource kind:  drawable, xml, etc...
 # android.add_resources = legal_resources
-android.add_resources = electrum/gui/qml/android_res/layout:layout
+# DebitMyData: higher-resolution copies of the presplash, so it stays sharp on modern phones
+# (p4a itself only installs presplash.filename as an mdpi drawable)
+android.add_resources = electrum/gui/qml/android_res/layout:layout,
+    electrum/gui/qml/android_res/drawable-xxhdpi:drawable-xxhdpi,
+    electrum/gui/qml/android_res/drawable-xxxhdpi:drawable-xxxhdpi
 
 # (str) python-for-android branch to use, if not master, useful to try
 # not yet merged features.

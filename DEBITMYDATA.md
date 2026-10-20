@@ -31,6 +31,19 @@ User-facing text says DebitMyData / DMD / debits / data instead of Bitcoin / BTC
 Strings that changed have no translations yet, so they show in English in other languages
 until the DebitMyData translations are added.
 
+## Android images
+
+| File | Shown as | Made from |
+|---|---|---|
+| `electrum/gui/icons/android_electrum_icon_foreground.png` + `_background.png` | home-screen icon (adaptive icon, 432×432 = 108 dp; keep the artwork inside the central 264 px circle, the launcher crops the rest) | wallet artwork on a #161616 background |
+| `electrum/gui/icons/android_electrum_icon_legacy.png` | icon on launchers without adaptive icons | wallet artwork, transparent corners |
+| `electrum/gui/icons/electrum_presplash.png` | launch screen while the app starts (black background); 1 px = 1 dp | splash artwork, ~230 dp wide |
+| `electrum/gui/qml/android_res/drawable-xxhdpi/presplash.png`, `drawable-xxxhdpi/presplash.png` | the same launch screen at 3× and 4× resolution, so it stays sharp | same artwork, 3× and 4× the size |
+| `electrum/gui/icons/electrum_banner_dark.png` | banner on the About and Terms of Use screens | header artwork for dark backgrounds |
+| `fastlane/metadata/android/en-US/images/icon.png` | store listing icon (512×512, full square) | same as the home-screen icon |
+
+The three presplash files must show the artwork at the same size in dp (pixel width ×1, ×3, ×4).
+
 ## Header verification and checkpoints
 
 Every header is verified with DebitMyData's own difficulty rules (`electrum/blockchain.py`,

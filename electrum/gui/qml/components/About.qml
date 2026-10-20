@@ -10,6 +10,7 @@ Pane {
 
     Flickable {
         anchors.fill: parent
+        contentWidth: width
         contentHeight: rootLayout.height
         interactive: height < contentHeight
 
@@ -18,18 +19,16 @@ Pane {
             columns: 2
             width: parent.width
 
-            Item {
+            Image {
+                id: electrum_logo
                 Layout.columnSpan: 2
                 Layout.alignment: Qt.AlignHCenter
                 Layout.preferredWidth: parent.width
-                Layout.preferredHeight: parent.width * 3/4 // reduce height, empty space in png
-
-                Image {
-                    id: electrum_logo
-                    width: parent.width
-                    height: width
-                    source: '../../icons/electrum_presplash.png'
-                }
+                Layout.topMargin: constants.paddingXLarge
+                Layout.bottomMargin: constants.paddingXLarge
+                Layout.preferredHeight: width * implicitHeight / implicitWidth
+                fillMode: Image.PreserveAspectFit
+                source: '../../icons/electrum_banner_dark.png'
             }
 
             Label {
@@ -72,8 +71,10 @@ Pane {
                 Layout.alignment: Qt.AlignRight
             }
             Label {
+                Layout.fillWidth: true
                 text: '<a href="https://github.com/DebitMyData-PoW/electrum_new">https://github.com/DebitMyData-PoW/electrum_new</a>'
                 textFormat: Text.RichText
+                wrapMode: Text.WrapAnywhere
                 onLinkActivated: Qt.openUrlExternally(link)
             }
             Label {
@@ -91,7 +92,9 @@ Pane {
             Label {
                 text: qsTr('DebitMyData-Electrum, based on Electrum by Electrum Technologies GmbH')
                 Layout.columnSpan: 2
-                Layout.alignment: Qt.AlignHCenter
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.Wrap
             }
         }
     }
