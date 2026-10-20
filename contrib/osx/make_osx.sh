@@ -7,7 +7,7 @@ PYTHON_VERSION=3.12.10
 PY_VER_MAJOR="3.12"  # as it appears in fs paths
 # DebitMyData: app is "DebitMyData-Electrum.app", so it does not clash with Bitcoin Electrum
 PACKAGE=DebitMyData-Electrum
-GIT_REPO=https://github.com/DebitMyData-PoW/electrum_new
+GIT_REPO=https://github.com/DebitMyData-PoW/electrum
 
 export GCC_STRIP_BINARIES="1"
 export PYTHONDONTWRITEBYTECODE=1  # don't create __pycache__/ folders with .pyc files

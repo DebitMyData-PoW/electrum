@@ -72,7 +72,7 @@ Pane {
             }
             Label {
                 Layout.fillWidth: true
-                text: '<a href="https://github.com/DebitMyData-PoW/electrum_new">https://github.com/DebitMyData-PoW/electrum_new</a>'
+                text: '<a href="https://github.com/DebitMyData-PoW/electrum">https://github.com/DebitMyData-PoW/electrum</a>'
                 textFormat: Text.RichText
                 wrapMode: Text.WrapAnywhere
                 onLinkActivated: Qt.openUrlExternally(link)

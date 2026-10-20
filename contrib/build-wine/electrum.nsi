@@ -7,7 +7,7 @@
 ;Variables
 
   !define PRODUCT_NAME "DebitMyData-Electrum"
-  !define PRODUCT_WEB_SITE "https://github.com/DebitMyData-PoW/electrum_new"
+  !define PRODUCT_WEB_SITE "https://github.com/DebitMyData-PoW/electrum"
   !define PRODUCT_PUBLISHER "DebitMyData"
   !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 
