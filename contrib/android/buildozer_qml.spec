@@ -89,8 +89,12 @@ presplash.filename = %(source.dir)s/electrum/gui/icons/electrum_presplash.png
 
 # (str) Icon of the application
 icon.filename = %(source.dir)s/electrum/gui/icons/android_electrum_icon_legacy.png
-icon.adaptive_foreground.filename = %(source.dir)s/electrum/gui/icons/android_electrum_icon_foreground.png
-icon.adaptive_background.filename = %(source.dir)s/electrum/gui/icons/android_electrum_icon_background.png
+# DebitMyData: plain (non-adaptive) launcher icons, so launchers show
+# the whole wallet instead of cropping it. The sizes per screen density come from
+# electrum/gui/qml/android_res/mipmap-*/ (android.add_resources below), the round icon is set with
+# android.extra_manifest_application_arguments. To go back to an adaptive icon, re-enable these:
+#icon.adaptive_foreground.filename = %(source.dir)s/electrum/gui/icons/android_electrum_icon_foreground.png
+#icon.adaptive_background.filename = %(source.dir)s/electrum/gui/icons/android_electrum_icon_background.png
 
 # (str) Supported orientation (one of landscape, portrait or all)
 orientation = portrait
@@ -186,11 +190,19 @@ android.add_activities = org.electrum.qr.SimpleScannerActivity, org.electrum.bio
 # 3) A directory, here 'legal_resources' must contain one or more directories,
 # each of a resource kind:  drawable, xml, etc...
 # android.add_resources = legal_resources
-# DebitMyData: higher-resolution copies of the presplash, so it stays sharp on modern phones
-# (p4a itself only installs presplash.filename as an mdpi drawable)
+# DebitMyData: higher-resolution copies of the presplash (p4a itself only installs presplash.filename
+# as an mdpi drawable), and the launcher icon at every screen density
 android.add_resources = electrum/gui/qml/android_res/layout:layout,
     electrum/gui/qml/android_res/drawable-xxhdpi:drawable-xxhdpi,
-    electrum/gui/qml/android_res/drawable-xxxhdpi:drawable-xxxhdpi
+    electrum/gui/qml/android_res/drawable-xxxhdpi:drawable-xxxhdpi,
+    electrum/gui/qml/android_res/mipmap-mdpi:mipmap-mdpi,
+    electrum/gui/qml/android_res/mipmap-hdpi:mipmap-hdpi,
+    electrum/gui/qml/android_res/mipmap-xhdpi:mipmap-xhdpi,
+    electrum/gui/qml/android_res/mipmap-xxhdpi:mipmap-xxhdpi,
+    electrum/gui/qml/android_res/mipmap-xxxhdpi:mipmap-xxxhdpi
+
+# DebitMyData: round launcher icon (android:roundIcon), used by launchers that show round icons
+android.extra_manifest_application_arguments = contrib/android/manifest_application_attributes.xml
 
 # (str) python-for-android branch to use, if not master, useful to try
 # not yet merged features.

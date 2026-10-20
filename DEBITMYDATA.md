@@ -36,12 +36,14 @@ until the DebitMyData translations are added.
 
 | File | Shown as | Made from |
 |---|---|---|
-| `electrum/gui/icons/android_electrum_icon_foreground.png` + `_background.png` | home-screen icon (adaptive icon, 432×432 = 108 dp; keep the artwork inside the central 264 px circle, the launcher crops the rest) | wallet artwork on a #161616 background |
-| `electrum/gui/icons/android_electrum_icon_legacy.png` | icon on launchers without adaptive icons | wallet artwork, transparent corners |
+| `electrum/gui/qml/android_res/mipmap-*/icon.png` (48, 72, 96, 144, 192 px) | home-screen icon | wallet artwork on a transparent background, filling the image |
+| `electrum/gui/qml/android_res/mipmap-*/icon_round.png` (same sizes) | home-screen icon on launchers that use round icons | round version of the wallet artwork |
+| `electrum/gui/icons/android_electrum_icon_legacy.png` | fallback copy of the 192 px icon (`icon.filename`) | same as `icon.png` |
+| `electrum/gui/icons/android_electrum_icon_foreground.png` + `_background.png` | not used: adaptive icon, switched off in `buildozer_qml.spec` because launchers crop it | |
 | `electrum/gui/icons/electrum_presplash.png` | launch screen while the app starts (black background); 1 px = 1 dp | splash artwork, ~230 dp wide |
 | `electrum/gui/qml/android_res/drawable-xxhdpi/presplash.png`, `drawable-xxxhdpi/presplash.png` | the same launch screen at 3× and 4× resolution, so it stays sharp | same artwork, 3× and 4× the size |
 | `electrum/gui/icons/electrum_banner_dark.png` | banner on the About and Terms of Use screens | header artwork for dark backgrounds |
-| `fastlane/metadata/android/en-US/images/icon.png` | store listing icon (512×512, full square) | same as the home-screen icon |
+| `fastlane/metadata/android/en-US/images/icon.png` | store listing icon (512×512, full square) | wallet artwork on a #161616 background |
 
 The three presplash files must show the artwork at the same size in dp (pixel width ×1, ×3, ×4).
 
