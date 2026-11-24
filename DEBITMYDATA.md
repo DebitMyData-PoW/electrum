@@ -8,13 +8,13 @@ Chain parameters follow DebitMyData Core v1.3.3 (`src/kernel/chainparams.cpp`, `
 | Area | DebitMyData value |
 |---|---|
 | Addresses | P2PKH version 30, P2SH 31, bech32 HRP `dm`, WIF 0x9e (158) |
-| Extended keys | standard xpub/xprv headers `0x04dab21e` / `0x04daade4` (DMD Core `EXT_PUBLIC_KEY` / `EXT_SECRET_KEY`) |
+| Extended keys | standard xpub/xprv headers `0x04dab21e` / `0x04daade4` (DebitMyData Core `EXT_PUBLIC_KEY` / `EXT_SECRET_KEY`) |
 | BIP44 coin type | 4134 (SLIP-0044 "DebitMyData"): suggested paths `m/44'/4134'/0'`, `m/49'/4134'/0'`, `m/84'/4134'/0'` and `m/48'/4134'/…` when restoring a BIP39 seed (desktop and Android). "Detect Existing Accounts" also scans the coin type 0 paths of the earlier DebitMyData-Electrum (4.7 fork). Wallets created with an Electrum seed use Electrum's fixed path (`m/0'` for segwit), which has no coin type, as in upstream Electrum |
 | Genesis | `00000992d19e3ed58ddf4117b597955752ff029e7256487a47557a24aeb4cadd` |
-| Difficulty | legacy retarget every 8 blocks below height 120, LWMA (N=60, T=150 s) from 120 — exact port of DMD Core, incl. 256-bit wrap-around |
-| Chain anchor | block 70159 must be `00000000000004b1c66c5c86b9af015e2c8c972a3e6c22b6fb3b0c799388db2a` (DMD Core `mandatory_block_hash`) |
+| Difficulty | legacy retarget every 8 blocks below height 120, LWMA (N=60, T=150 s) from 120 — exact port of DebitMyData Core, incl. 256-bit wrap-around |
+| Chain anchor | block 70159 must be `00000000000004b1c66c5c86b9af015e2c8c972a3e6c22b6fb3b0c799388db2a` (DebitMyData Core `mandatory_block_hash`) |
 | Payment links | `debitmydata:` |
-| Signed messages | prefix `DebitMyData Signed Message:\n` (DMD Core `MESSAGE_MAGIC`) |
+| Signed messages | prefix `DebitMyData Signed Message:\n` (DebitMyData Core `MESSAGE_MAGIC`) |
 | Android app ID | `io.debitmydata.electrum` |
 | Android app name | DMD Electrum Wallet (`title` in `contrib/android/buildozer_qml.spec`; the app ID must never change, or phones treat it as a different app) |
 | Units | DMD, mDMD, debits (µDMD), data (smallest unit); fee rates in data/vB |
@@ -50,7 +50,7 @@ The three presplash files must show the artwork at the same size in dp (pixel wi
 ## Header verification and checkpoints
 
 Every header is verified with DebitMyData's own difficulty rules (`electrum/blockchain.py`,
-`dmd_get_next_work_required`). The port was cross-checked against DMD Core's compiled `pow.cpp`
+`dmd_get_next_work_required`). The port was cross-checked against DebitMyData Core's compiled `pow.cpp`
 on 343,680 randomized heights (including timestamp edge cases and 256-bit overflow) with zero
 mismatches. `tests/test_dmd_blockchain.py` covers sync, rejection of wrong difficulty / proof of work,
 the chain anchor, chain work, forks and checkpoints.
@@ -94,8 +94,8 @@ plain folder), on an x86_64 machine with about 20 GB of free disk space.
     ```
     git clone https://github.com/DebitMyData-PoW/electrum.git
     cd electrum
-    git checkout <your DebitMyData branch>
-    git tag 4.8.2-dmd1          # optional: the newest tag becomes the version in the file names
+    git tag -l '*-dmd*'         # the releases
+    git checkout 4.8.2-dmd2     # the one to build (without it: the debitmydata branch as it is)
     ```
 
 3. Build:
@@ -205,12 +205,12 @@ Intel (x86_64) Mac with macOS 11 and the result targets x86_64 (it also runs on 
 Macs through Rosetta). Building on an Apple Silicon Mac is not tested upstream.
 
 1. Install the Xcode command line tools (`xcode-select --install`) and Homebrew (https://brew.sh).
-2. Clone the repository and check out your release:
+2. Clone the repository and check out the release to build (`git tag -l '*-dmd*'` lists them):
 
     ```
     git clone https://github.com/DebitMyData-PoW/electrum.git
     cd electrum
-    git checkout 4.8.2-dmd1
+    git checkout 4.8.2-dmd2
     ```
 
 3. Build:
